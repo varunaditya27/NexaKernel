@@ -83,7 +83,7 @@ NexaKernel is intentionally designed to showcase **real DSA usage** within opera
 A clean, extensible structure designed for future kernel modules.
 
 ```
-my-os/
+NexaKernel/
 ├── README.md
 ├── LICENSE
 ├── Makefile
