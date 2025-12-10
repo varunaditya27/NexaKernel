@@ -1,12 +1,30 @@
+#include <lib/dsa/trie.h>
+#include <stddef.h>
+
 /*
- * trie.c
+ * kernel/fs/dsa_structures/trie.c
  *
- * Trie for filename lookup in RAM FS. Keep the trie small and memory efficient —
- * this is for demonstration, not production.
+ * File Indexing Wrapper
+ *
+ * This file adapts the generic Trie (Prefix Tree) data structure for fast file
+ * indexing. It allows for efficient prefix-based searches and autocomplete-style
+ * lookups for filenames within the file system.
  */
 
-#include <stdint.h>
+static trie_t file_index;
 
-void trie_init(void) {}
-void trie_insert(const char *s, void *value) {}
-void *trie_find(const char *s) { return 0; }
+void fs_index_init(void) {
+    trie_init(&file_index);
+}
+
+bool fs_index_add(const char *filename, void *inode) {
+    return trie_insert(&file_index, filename, inode);
+}
+
+void *fs_index_get(const char *filename) {
+    return trie_search(&file_index, filename);
+}
+
+bool fs_index_remove(const char *filename) {
+    return trie_remove(&file_index, filename);
+}
