@@ -1,9 +1,11 @@
 /*
  * lib/cstd/stdio.c
  *
- * Minimal stdio functions for userland and kernel. This file contains wrappers
- * used by the kernel's own kprintf and by user programs built into the kernel
- * image.
+ * Standard I/O Library
+ *
+ * This file implements basic I/O functions like printf. In the kernel context,
+ * these typically wrap around the VGA driver or serial port driver to provide
+ * debug output and logging capabilities.
  */
 
 int libc_printf(const char *fmt, ...) { return 0; }
