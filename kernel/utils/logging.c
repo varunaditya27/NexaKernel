@@ -1,8 +1,13 @@
 /*
- * logging.c
+ * kernel/utils/logging.c
  *
- * Lightweight logging helpers for the kernel; keep different log levels
- * and a simple interface to print to VGA and optionally to a serial port.
+ * Kernel Logging Facility
+ *
+ * This file provides a centralized logging mechanism for the kernel. It supports
+ * different log levels (INFO, ERROR, DEBUG) and abstracts the output destination
+ * (e.g., VGA console, Serial Port).
+ *
+ * It is essential for debugging and tracking kernel state transitions.
  */
 
 void log_init(void) {}

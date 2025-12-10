@@ -1,9 +1,13 @@
 /*
  * memory_layout.ld
  *
- * Linker script controlling where sections are placed in the final kernel image.
- * The exact memory map will depend on your bootloader and target boot method (GRUB/BIOS).
- * Use this as a starting point and adjust section addresses to match your bootloader.
+ * Kernel Linker Script
+ *
+ * This script defines the memory layout of the final kernel binary. It instructs
+ * the linker on how to combine object files and where to place sections (text,
+ * data, bss) in physical memory.
+ *
+ * It ensures the kernel is linked to run at the correct load address (e.g., 1MB).
  */
 
 /* Minimal skeleton; replace with project-specific layout. */

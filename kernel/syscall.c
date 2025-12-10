@@ -1,11 +1,13 @@
 /*
  * kernel/syscall.c
  *
- * System call dispatcher and table. Implement a fixed table of syscall handlers
- * and a function `syscall_dispatch(int id, registers_t *regs)` to call them.
+ * System Call Dispatcher
  *
- * Keep the syscall ABI stable: `int syscall(int number, ...)` and document what
- * each syscall requires in `userland/lib/syscall_wrappers.c`.
+ * This file implements the central mechanism for handling system calls from
+ * userland. It defines the `syscall_dispatch` function, which routes syscall
+ * numbers to their corresponding kernel handlers.
+ *
+ * It serves as the secure boundary between user mode applications and kernel mode privileges.
  */
 
 #include <stdint.h>

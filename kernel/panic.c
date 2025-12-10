@@ -1,12 +1,13 @@
 /*
  * kernel/panic.c
  *
- * Panic and assertion helpers for kernel debugging. Provide a function like
- * `void panic(const char *fmt, ...)` which prints error info to VGA and
- * halts the CPU.
+ * Kernel Panic Handler
  *
- * Keep panic code simple. Avoid dynamic allocations and long dependency chains
- * — panic can be called from anywhere and should be minimally dependent.
+ * This file implements the `panic()` function, which is called when the kernel
+ * encounters an unrecoverable error. It prints a diagnostic message to the
+ * screen and halts the CPU to prevent further damage or corruption.
+ *
+ * It is a critical debugging tool for kernel development.
  */
 
 #include <stdarg.h>

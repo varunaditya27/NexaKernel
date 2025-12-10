@@ -1,8 +1,11 @@
 /*
- * stdio.c
+ * kernel/utils/stdio.c
  *
- * Very small stdio implementation for kernel printing. Provide vprintf-like
- * functions used by panic and debugging helpers.
+ * Minimal Standard I/O Library
+ *
+ * This file implements a subset of the standard C I/O functions (like `printf`)
+ * for use within the kernel. Since the kernel cannot link against a standard
+ * libc, it must provide its own formatting logic for displaying text.
  */
 
 #include <stdarg.h>

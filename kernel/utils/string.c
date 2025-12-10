@@ -1,9 +1,11 @@
 /*
- * string.c
+ * kernel/utils/string.c
  *
- * Minimal string functions for kernel: strlen, strcmp, strcpy, memset, etc.
- * Keep the ABI tiny and safe; do not rely on libc. Use these utilities across
- * the kernel where needed.
+ * Kernel String Utilities
+ *
+ * This file provides essential string manipulation functions (strlen, strcpy,
+ * memset, memcpy) for use by kernel code. These are freestanding implementations
+ * that do not rely on an external C library.
  */
 
 #include <stddef.h>

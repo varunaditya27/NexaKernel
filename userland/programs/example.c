@@ -1,8 +1,10 @@
 /*
  * userland/programs/example.c
  *
- * Tiny example program to exercise syscalls. Build this into the kernel
- * image to provide a test that the syscall layer works.
+ * Example User Program
+ *
+ * This is a minimal user-space application designed to test the kernel's
+ * ability to load and execute programs. It demonstrates basic system call usage.
  */
 
 int main(void) {

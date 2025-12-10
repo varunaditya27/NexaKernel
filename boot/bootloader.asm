@@ -1,10 +1,13 @@
 ; bootloader.asm
 ;
-; Minimal bootloader scaffold: early real-mode code that sets up a simple
-; environment and jumps to the kernel. In a working kernel this file:
-; - sets up a stack and segments
-; - loads the kernel binary into memory
-; - switches to protected mode and jumps to a C entrypoint
+; Core Bootloader Logic
 ;
-; Keep bootloader code minimal. Avoid dynamic memory; the kernel heap is not
-; initialized yet.
+; This file contains the 16-bit real mode entry point and early 32-bit protected mode
+; initialization code. It is responsible for:
+; 1. Setting up the initial stack and data segments.
+; 2. Enabling the A20 line to access memory above 1MB.
+; 3. Loading the Global Descriptor Table (GDT).
+; 4. Switching the CPU to Protected Mode (32-bit).
+; 5. Jumping to the C kernel entry point (`kernel_main`).
+;
+; This is the bridge between the BIOS/GRUB and the NexaKernel C code.

@@ -1,8 +1,11 @@
 /*
  * kernel/interrupts/isr.c
  *
- * Software interrupt handlers (CPU exceptions). Provide a small table to map
- * exception numbers to diagnostic handlers which print helpful messages.
+ * Interrupt Service Routines (Software Interrupts)
+ *
+ * This file handles CPU exceptions (like Divide-by-Zero, Page Fault, or General
+ * Protection Fault). It provides the core logic for diagnosing and reporting
+ * system crashes or errors triggered by software execution.
  */
 
 #include <stdint.h>
