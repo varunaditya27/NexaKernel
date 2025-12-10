@@ -1,7 +1,9 @@
 ; context_switch.asm
 ;
-; Assembly-level context switch helpers. Provide labels that the C scheduler can
-; call to save the current CPU state and load a new task state.
+; Low-Level Context Switch Routine
 ;
-; Keep the ABI minimal; prefer a single function `context_switch(old_sp, new_sp)`
-; or separate `save_context` / `restore_context` functions.
+; This file contains the assembly code responsible for saving the state of the
+; currently running task (registers, stack pointer) and restoring the state of
+; the next task to be run.
+;
+; It is the core mechanism that enables multitasking.

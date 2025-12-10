@@ -1,20 +1,19 @@
 /*
  * kernel/scheduler/task.c
  *
- * Task control block implementation. Define structures for task_t: registers,
- * stack pointer, state, priority, and metadata. Expose functions to create and
- * destroy tasks and to store them in scheduler queues.
+ * Task Control Block (TCB) Management
+ *
+ * This file handles the creation, initialization, and destruction of tasks
+ * (processes/threads). It defines the `task_t` structure which holds all
+ * information necessary to save and restore a task's execution context.
  */
 
-#include <stdint.h>
-
-typedef struct task {
-    uint32_t *stack_ptr;
-    int pid;
-    int priority;
-    // Add register save area and other metadata
-} task_t;
+#include "task.h"
+#include <stddef.h>
 
 void task_init(task_t *t) {
-    // Initialize task structure
+    if (!t) return;
+    t->stack_ptr = NULL;
+    t->pid = 0;
+    t->priority = 0;
 }

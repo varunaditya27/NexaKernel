@@ -1,17 +1,33 @@
 /*
  * kernel/scheduler/scheduler.c
  *
- * Scheduler implementation. Provide init_scheduler(), create_task(),
- * tick_handler(), and schedule() functions. Use `kernel/scheduler/dsa_structures/`
- * as the source of the in-memory data structures: round-robin queue and heap.
+ * Process Scheduler
+ *
+ * This file implements the kernel's scheduling logic. It decides which task
+ * runs next on the CPU. It uses DSA wrappers (Round Robin Queue, Priority Queue)
+ * to manage the ready state of tasks.
  */
 
-#include <stdint.h>
+#include "task.h"
+#include "dsa_structures.h"
+#include <stddef.h>
 
+// Simple round robin for now
 void init_scheduler(void) {
-    // Initialize scheduler queues and state
+    rr_queue_init(100); // Capacity 100
+    pq_init(100);       // Capacity 100
 }
 
 void schedule(void) {
-    // Choose next task and perform context switch
+    if (rr_is_empty()) return;
+
+    task_t *next_task = rr_dequeue();
+    // Context switch to next_task (assembly stub would be called here)
+    // For now, just re-enqueue to simulate round robin
+    rr_enqueue(next_task);
+}
+
+void add_task(task_t *task) {
+    rr_enqueue(task);
+    pq_enqueue(task); // Also add to priority queue for demo
 }
