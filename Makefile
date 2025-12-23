@@ -63,11 +63,11 @@ CFLAGS = -m32 \
          -fno-stack-protector \
          -Wall \
          -Wextra \
-         -Werror \
          -O2 \
          -g \
+         -I. \
          -I$(KERNEL_DIR) \
-         -I$(LIB_DIR)/cstd \
+         -I$(LIB_DIR) \
          -I$(CONFIG_DIR)
 
 # Assembler flags
@@ -90,6 +90,14 @@ ASM_SOURCES = $(BOOT_DIR)/multiboot_header.asm \
 # C sources (kernel core)
 C_SOURCES = $(KERNEL_DIR)/kernel.c \
             $(KERNEL_DIR)/panic.c
+
+# Memory management sources
+C_SOURCES += $(KERNEL_DIR)/memory/frame_allocator.c \
+             $(KERNEL_DIR)/memory/heap_allocator.c
+
+# Data structure library sources
+C_SOURCES += $(LIB_DIR)/dsa/bitmap.c \
+             $(LIB_DIR)/dsa/list.c
 
 # TODO: Add more source files as they are implemented
 # C_SOURCES += $(KERNEL_DIR)/drivers/vga_text.c
