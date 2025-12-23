@@ -114,24 +114,34 @@ Full expanded version is available in the repo.
 
 NexaKernel is designed to run on **QEMU**, making it easy to test without hardware flashing.
 
-## 🔧 Prerequisites
+## 🔧 Prerequisites (Native Linux)
 
-* `make`
-* `nasm`
-* `x86_64-elf-gcc` (cross-compiler)
-* `qemu-system-x86_64`
+Install the required packages on Debian/Ubuntu:
+
+```bash
+sudo apt install build-essential gcc-multilib nasm qemu-system-x86 grub-pc-bin xorriso gdb
+```
+
+**Required tools:**
+* `gcc` with 32-bit support (`gcc-multilib`)
+* `nasm` (assembler)
+* `ld` (linker from binutils)
+* `qemu-system-i386` (emulator)
+* `grub-mkrescue`, `xorriso` (for ISO creation)
 
 ## ▶️ Build & Run
 
-```
-make
-make run
+```bash
+make          # Build the kernel
+make run      # Run in QEMU
 ```
 
 ## 🐛 Debugging with GDB
 
-```
-make debug
+```bash
+make debug    # Start QEMU with GDB server
+# In another terminal:
+gdb build/kernel.elf -ex 'target remote localhost:1234'
 ```
 
 ---
