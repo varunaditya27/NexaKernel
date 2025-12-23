@@ -1,8 +1,8 @@
+<div align="center">
+
 # 🧬 NexaKernel
 
-### A Modular, From-Scratch Operating System Kernel with Deep Data Structure Integration
-
-<div align="center">
+## A Modular, From-Scratch Operating System Kernel with Deep Data Structure Integration
 
 **Built from the ground up. Architected for extensibility. Powered by clean systems design & real DSA fundamentals.**
 
