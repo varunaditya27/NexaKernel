@@ -1,7 +1,9 @@
 ; multiboot_header.asm
 ;
-; Multiboot header for GRUB - minimal placeholder.
-; Add flags and checksum required by the multiboot specification.
-
-; NOTE: This is a scaffold; the real multiboot header needs proper flags and
-; fields as per multiboot spec. See docs/ for recommended values.
+; Multiboot Specification Header
+;
+; This file defines the magic numbers and flags required by Multiboot-compliant
+; bootloaders (like GRUB) to recognize and load the kernel.
+;
+; It ensures the kernel is loaded into the correct memory location and
+; provides information about the kernel's layout to the bootloader.

@@ -1,8 +1,11 @@
 /*
- * message_queue.c
+ * kernel/ipc/message_queue.c
  *
- * FIFO message queues used for simple IPC. Keep the API minimal: create_queue,
- * enqueue, dequeue, and peek. Ensure behavior is documented for edge cases.
+ * IPC Message Queue
+ *
+ * This file implements a First-In-First-Out (FIFO) message queue mechanism for
+ * Inter-Process Communication (IPC). It allows tasks to safely exchange data
+ * messages, facilitating coordination between different parts of the system.
  */
 
 #include <stdint.h>

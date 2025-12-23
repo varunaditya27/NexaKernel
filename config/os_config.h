@@ -1,12 +1,15 @@
 /*
  * os_config.h
  *
- * Project-specific, discoverable configuration flags for NexaKernel.
- * This file should hold macro definitions that control build-time features,
- * such as whether the scheduler is preemptive, kernel heap sizes, or debug flags.
+ * Global Operating System Configuration
  *
- * Example: define SCHEDULER_PREEMPTIVE 1 to enable PIT-driven preemption.
- * Keep this file minimal and use it across kernel modules to avoid hardcoded values.
+ * This file contains compile-time configuration macros that control the
+ * behavior and features of the NexaKernel. It defines parameters such as:
+ * - Scheduler mode (Preemptive vs Cooperative)
+ * - Kernel Heap Size
+ * - Debugging flags
+ *
+ * Include this file in modules that need access to global system settings.
  */
 
 #ifndef OS_CONFIG_H

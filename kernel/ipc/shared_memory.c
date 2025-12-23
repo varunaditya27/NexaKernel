@@ -1,9 +1,11 @@
 /*
- * shared_memory.c
+ * kernel/ipc/shared_memory.c
  *
- * Basic shared memory implementation for IPC. Use a hash map to manage
- * named shared segments and provide functions to allocate and map these
- * regions into task address spaces.
+ * IPC Shared Memory
+ *
+ * This file implements shared memory regions for Inter-Process Communication.
+ * It allows multiple tasks to map the same physical memory frame into their
+ * address spaces, enabling high-speed, zero-copy data exchange.
  */
 
 #include <stdint.h>

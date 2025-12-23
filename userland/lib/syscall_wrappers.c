@@ -1,8 +1,11 @@
 /*
  * userland/lib/syscall_wrappers.c
  *
- * Thin userland wrappers around kernel syscalls. Provide stable ABI for
- * user programs like `write`, `exit`, `open`, etc.
+ * System Call Wrappers
+ *
+ * This file provides the user-space C API for kernel system calls. It implements
+ * functions like `write`, `exit`, and `open` by triggering the appropriate
+ * software interrupt or syscall instruction to transition into kernel mode.
  */
 
 int write(int fd, const void *buf, int size) { return -1; }

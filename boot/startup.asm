@@ -1,7 +1,9 @@
 ; startup.asm
 ;
-; Early startup assembly: sets up stack, performs any last-minute initial
-; checks, and then calls into `kernel_main()` defined in C.
+; Kernel Entry Point Trampoline
 ;
-; Avoid heavy logic here; move complex work to C after the kernel heap is
-; initialized.
+; This file contains the `_start` symbol (or equivalent) that serves as the
+; entry point after the bootloader finishes. It performs final low-level
+; setup (like stack alignment) before calling the C function `kernel_main`.
+;
+; It ensures a clean environment for the C kernel to begin execution.

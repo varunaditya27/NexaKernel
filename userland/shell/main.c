@@ -1,9 +1,11 @@
 /*
  * userland/shell/main.c
  *
- * Minimal userland shell that runs inside the NexaKernel userland environment.
- * Demonstrates syscalls and file system usage. Provide simple command parsing
- * and a handful of demo commands that call into the kernel syscall interface.
+ * NexaShell Entry Point
+ *
+ * This file implements the main loop of the system shell. It reads user input,
+ * parses commands, and executes them by invoking kernel system calls or
+ * launching other programs.
  */
 
 int main(void) {
