@@ -25,6 +25,8 @@
 #include "memory/memory.h"
 #include "interrupts/interrupts.h"
 #include "drivers/drivers.h"
+#include "scheduler/scheduler.h"
+#include "scheduler/task.h"
 
 /* ---------------------------------------------------------------------------
  * Multiboot Information Structure
@@ -61,8 +63,10 @@ static void clear_bss(void);
 static void init_memory(multiboot_info_t *mb_info);
 static void init_interrupts(void);
 static void init_drivers(void);
+static void init_scheduler_subsystem(void);
 static void memory_test(void);
 static void interrupt_test(void);
+static void scheduler_test(void);
 
 /* ---------------------------------------------------------------------------
  * VGA Text Mode Constants
@@ -168,11 +172,10 @@ void kernel_main(multiboot_info_t *multiboot_info)
     init_drivers();
 
     /* -----------------------------------------------------------------------
-     * Phase 4: Scheduler (TODO)
+     * Phase 4: Scheduler
      * ----------------------------------------------------------------------- */
     early_console_print("\n[INIT] Phase 4: Scheduler\n");
-    early_console_print("  - Task system:     TODO\n");
-    early_console_print("  - Round-robin:     TODO\n");
+    init_scheduler_subsystem();
 
     /* -----------------------------------------------------------------------
      * Memory Test (optional - demonstrates working allocation)
@@ -186,16 +189,35 @@ void kernel_main(multiboot_info_t *multiboot_info)
     early_console_print("\n[TEST] Interrupt System Test\n");
     interrupt_test();
 
+    /* -----------------------------------------------------------------------
+     * Scheduler Test (demonstrates working multitasking)
+     * ----------------------------------------------------------------------- */
+    early_console_print("\n[TEST] Scheduler System Test\n");
+    scheduler_test();
+
     early_console_print("\n========================================\n");
     early_console_print("  Boot sequence complete!\n");
-    early_console_print("  Interrupts enabled. System running.\n");
-    early_console_print("  Press any key to see keyboard input.\n");
+    early_console_print("  Starting scheduler...\n");
     early_console_print("========================================\n\n");
 
     /* Enable interrupts - the system is now fully operational */
     cpu_sti();
 
-    /* Main kernel loop - in a real kernel, this would be the scheduler */
+    /*
+     * Start the scheduler. This function begins multitasking and
+     * does not return unless the scheduler is stopped.
+     *
+     * After this point, execution continues via scheduled tasks.
+     */
+    early_console_print("[SCHED] Entering scheduler...\n");
+    scheduler_start();
+
+    /*
+     * If scheduler_start returns (shouldn't happen), fall back to
+     * a simple main loop.
+     */
+    early_console_print("[WARN] Scheduler returned unexpectedly!\n");
+    
     uint32_t last_ticks = 0;
     while (1) {
         /* Check for keyboard input */
@@ -388,6 +410,249 @@ static void init_drivers(void)
     early_console_print("  - Keyboard:        ");
     keyboard_init();
     early_console_print("OK (PS/2)\n");
+}
+
+/* ---------------------------------------------------------------------------
+ * Demo Task Entry Points
+ * ---------------------------------------------------------------------------
+ * These are simple tasks used to demonstrate the scheduler functionality.
+ * In a real kernel, tasks would be user programs or kernel services.
+ * --------------------------------------------------------------------------- */
+
+/* Demo Task A: Counts and prints a message periodically */
+static void demo_task_a(void *arg)
+{
+    UNUSED(arg);
+    int count = 0;
+    
+    while (count < 5) {
+        early_console_print("[Task A] Running... count=");
+        early_console_print_dec(count);
+        early_console_print("\n");
+        
+        count++;
+        
+        /* Yield to other tasks */
+        task_yield();
+    }
+    
+    early_console_print("[Task A] Finished!\n");
+    /* Task will exit automatically when function returns */
+}
+
+/* Demo Task B: Similar to Task A but different message */
+static void demo_task_b(void *arg)
+{
+    UNUSED(arg);
+    int count = 0;
+    
+    while (count < 5) {
+        early_console_print("[Task B] Hello! iteration=");
+        early_console_print_dec(count);
+        early_console_print("\n");
+        
+        count++;
+        
+        /* Yield to other tasks */
+        task_yield();
+    }
+    
+    early_console_print("[Task B] Done!\n");
+}
+
+/* Demo Task C: Higher priority task */
+static void demo_task_c(void *arg)
+{
+    UNUSED(arg);
+    
+    early_console_print("[Task C] High priority task starting\n");
+    
+    for (int i = 0; i < 3; i++) {
+        early_console_print("[Task C] Priority work #");
+        early_console_print_dec(i);
+        early_console_print("\n");
+        task_yield();
+    }
+    
+    early_console_print("[Task C] High priority task done\n");
+}
+
+/* Main task: Runs the keyboard input loop */
+static void main_task_entry(void *arg)
+{
+    UNUSED(arg);
+    
+    early_console_print("[Main] Interactive mode - press keys!\n");
+    early_console_print("[Main] Press 's' for scheduler stats\n\n");
+    
+    uint32_t last_sec = 0;
+    
+    while (1) {
+        /* Check for keyboard input */
+        if (keyboard_has_input()) {
+            char c = keyboard_getchar();
+            if (c != 0) {
+                if (c == 's' || c == 'S') {
+                    /* Print scheduler statistics */
+                    early_console_print("\n=== Scheduler Statistics ===\n");
+                    early_console_print("  Context switches: ");
+                    early_console_print_dec(scheduler_get_context_switches());
+                    early_console_print("\n");
+                    early_console_print("  Schedule calls:   ");
+                    early_console_print_dec(scheduler_get_schedule_calls());
+                    early_console_print("\n");
+                    early_console_print("  Ready tasks:      ");
+                    early_console_print_dec(scheduler_ready_count());
+                    early_console_print("\n");
+                    early_console_print("  Idle time:        ");
+                    early_console_print_dec(scheduler_get_idle_time());
+                    early_console_print(" ticks\n");
+                    early_console_print("  Active tasks:     ");
+                    early_console_print_dec(task_count());
+                    early_console_print("\n");
+                    early_console_print("============================\n\n");
+                } else {
+                    early_console_print("Key: '");
+                    char str[2] = {c, '\0'};
+                    early_console_print(str);
+                    early_console_print("'\n");
+                }
+            }
+        }
+
+        /* Print uptime every 5 seconds */
+        uint32_t current_sec = pit_get_uptime_sec();
+        if (current_sec - last_sec >= 5) {
+            last_sec = current_sec;
+            early_console_print("[");
+            early_console_print_dec(current_sec);
+            early_console_print("s] System running... (");
+            early_console_print_dec(task_count());
+            early_console_print(" tasks)\n");
+        }
+
+        /* Yield to let other tasks run */
+        task_yield();
+    }
+}
+
+/* ---------------------------------------------------------------------------
+ * init_scheduler_subsystem - Initialize the task scheduler
+ * ---------------------------------------------------------------------------
+ * Sets up the scheduler, creates demo tasks, and prepares for multitasking.
+ * --------------------------------------------------------------------------- */
+static void init_scheduler_subsystem(void)
+{
+    /* -----------------------------------------------------------------------
+     * Initialize Task System
+     * ----------------------------------------------------------------------- */
+    early_console_print("  - Task system:     ");
+    if (task_system_init()) {
+        early_console_print("OK (max ");
+        early_console_print_dec(MAX_TASKS);
+        early_console_print(" tasks)\n");
+    } else {
+        early_console_print("FAILED\n");
+        PANIC("Failed to initialize task system");
+    }
+
+    /* -----------------------------------------------------------------------
+     * Initialize Scheduler
+     * ----------------------------------------------------------------------- */
+    early_console_print("  - Scheduler:       ");
+    if (scheduler_init()) {
+        early_console_print("OK (");
+        if (scheduler_get_policy() == SCHED_POLICY_ROUND_ROBIN) {
+            early_console_print("round-robin");
+        } else {
+            early_console_print("priority");
+        }
+        early_console_print(")\n");
+    } else {
+        early_console_print("FAILED\n");
+        PANIC("Failed to initialize scheduler");
+    }
+
+    /* -----------------------------------------------------------------------
+     * Create Main Task
+     * ----------------------------------------------------------------------- */
+    early_console_print("  - Main task:       ");
+    task_t *main = task_create("main", main_task_entry, NULL, 
+                               TASK_PRIORITY_NORMAL, 0);
+    if (main != NULL) {
+        scheduler_add_task(main);
+        early_console_print("OK (PID ");
+        early_console_print_dec(main->pid);
+        early_console_print(")\n");
+    } else {
+        early_console_print("FAILED\n");
+        PANIC("Failed to create main task");
+    }
+
+    /* Print scheduler ready state */
+    early_console_print("  - Ready tasks:     ");
+    early_console_print_dec(scheduler_ready_count());
+    early_console_print(" (+ idle)\n");
+}
+
+/* ---------------------------------------------------------------------------
+ * scheduler_test - Test scheduler functionality
+ * ---------------------------------------------------------------------------
+ * Creates demo tasks to demonstrate multitasking.
+ * --------------------------------------------------------------------------- */
+static void scheduler_test(void)
+{
+    task_t *task;
+
+    /* Create demo tasks */
+    early_console_print("  - Creating demo tasks...\n");
+
+    /* Task A: Normal priority */
+    early_console_print("    - Task A:        ");
+    task = task_create("demo-A", demo_task_a, NULL, TASK_PRIORITY_NORMAL, 0);
+    if (task != NULL) {
+        scheduler_add_task(task);
+        early_console_print("OK (PID ");
+        early_console_print_dec(task->pid);
+        early_console_print(", priority ");
+        early_console_print_dec(task->priority);
+        early_console_print(")\n");
+    } else {
+        early_console_print("FAILED\n");
+    }
+
+    /* Task B: Normal priority */
+    early_console_print("    - Task B:        ");
+    task = task_create("demo-B", demo_task_b, NULL, TASK_PRIORITY_NORMAL, 0);
+    if (task != NULL) {
+        scheduler_add_task(task);
+        early_console_print("OK (PID ");
+        early_console_print_dec(task->pid);
+        early_console_print(", priority ");
+        early_console_print_dec(task->priority);
+        early_console_print(")\n");
+    } else {
+        early_console_print("FAILED\n");
+    }
+
+    /* Task C: High priority */
+    early_console_print("    - Task C (high): ");
+    task = task_create("demo-C", demo_task_c, NULL, TASK_PRIORITY_HIGH, 0);
+    if (task != NULL) {
+        scheduler_add_task(task);
+        early_console_print("OK (PID ");
+        early_console_print_dec(task->pid);
+        early_console_print(", priority ");
+        early_console_print_dec(task->priority);
+        early_console_print(")\n");
+    } else {
+        early_console_print("FAILED\n");
+    }
+
+    /* Print ready task count */
+    early_console_print("  - Total ready:     ");
+    early_console_print_dec(scheduler_ready_count());
+    early_console_print(" tasks\n");
 }
 
 /* ---------------------------------------------------------------------------
