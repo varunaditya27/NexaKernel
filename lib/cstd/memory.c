@@ -1,17 +1,29 @@
 /*
+ * ===========================================================================
  * lib/cstd/memory.c
+ * ===========================================================================
  *
- * Standard Memory Library
+ * Standard Memory Library Implementation
  *
  * This file implements standard C memory functions (memcpy, memset, etc.)
- * for use by the kernel and userland applications. It provides the fundamental
- * operations for manipulating memory blocks.
+ * for use by the kernel and userland applications. These are freestanding
+ * implementations that do not rely on an external C library.
+ *
+ * ===========================================================================
  */
 
-#include <stddef.h>
+#include "memory.h"
 #include <stdint.h>
 
-void *memcpy(void *dst, const void *src, size_t n) {
+/* ---------------------------------------------------------------------------
+ * Memory Copy Functions
+ * --------------------------------------------------------------------------- */
+
+/**
+ * @brief Copy memory block (non-overlapping)
+ */
+void *memcpy(void *dst, const void *src, size_t n)
+{
     char *d = (char *)dst;
     const char *s = (const char *)src;
     while (n--) {
@@ -20,15 +32,11 @@ void *memcpy(void *dst, const void *src, size_t n) {
     return dst;
 }
 
-void *memset(void *s, int c, size_t n) {
-    unsigned char *p = (unsigned char *)s;
-    while (n--) {
-        *p++ = (unsigned char)c;
-    }
-    return s;
-}
-
-void *memmove(void *dst, const void *src, size_t n) {
+/**
+ * @brief Copy memory block (handles overlapping)
+ */
+void *memmove(void *dst, const void *src, size_t n)
+{
     char *d = (char *)dst;
     const char *s = (const char *)src;
     if (d < s) {
@@ -45,7 +53,31 @@ void *memmove(void *dst, const void *src, size_t n) {
     return dst;
 }
 
-int memcmp(const void *s1, const void *s2, size_t n) {
+/* ---------------------------------------------------------------------------
+ * Memory Set Functions
+ * --------------------------------------------------------------------------- */
+
+/**
+ * @brief Fill memory with a constant byte
+ */
+void *memset(void *s, int c, size_t n)
+{
+    unsigned char *p = (unsigned char *)s;
+    while (n--) {
+        *p++ = (unsigned char)c;
+    }
+    return s;
+}
+
+/* ---------------------------------------------------------------------------
+ * Memory Comparison Functions
+ * --------------------------------------------------------------------------- */
+
+/**
+ * @brief Compare two memory blocks
+ */
+int memcmp(const void *s1, const void *s2, size_t n)
+{
     const unsigned char *p1 = (const unsigned char *)s1;
     const unsigned char *p2 = (const unsigned char *)s2;
     while (n--) {
@@ -56,4 +88,22 @@ int memcmp(const void *s1, const void *s2, size_t n) {
         p2++;
     }
     return 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * Memory Search Functions
+ * --------------------------------------------------------------------------- */
+
+/**
+ * @brief Find first occurrence of a byte in memory
+ */
+void *memchr(const void *s, int c, size_t n)
+{
+    const unsigned char *p = (const unsigned char *)s;
+    while (n--) {
+        if (*p == (unsigned char)c)
+            return (void *)p;
+        p++;
+    }
+    return NULL;
 }
