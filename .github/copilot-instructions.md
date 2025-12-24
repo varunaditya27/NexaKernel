@@ -181,7 +181,28 @@ make clean        # Remove build artifacts
 - **Timer callback:** Drives preemptive scheduling via `pit_register_callback()`
 - **Idle task:** Created automatically by scheduler, runs at lowest priority
 
-## 9. Key Files Reference
+## 9. Library Organization
+
+**Generic DSA Library** (`lib/dsa/`):
+- Reusable data structure implementations (bitmap, list, queue, heap, tree, trie, hashmap)
+- Used by kernel subsystems via wrappers in `kernel/*/dsa_structures/`
+
+**C Standard Library** (`lib/cstd/`):
+- Freestanding implementations of C library functions
+- `string.h/c` - String manipulation (strlen, strcpy, strcmp, etc.)
+- `memory.h/c` - Memory operations (memcpy, memset, memmove, memcmp)
+- `stdio.h/c` - Kernel printf (kprintf, kvprintf)
+
+**Kernel Utilities** (`kernel/utils/`):
+- `logging.h/c` - Kernel logging facility (log_info, log_error, log_debug)
+- `test_dsa.h/c` - DSA verification test suite
+
+**DSA Wrapper Pattern:**
+- Generic DSA in `lib/dsa/` → Module-specific wrapper in `kernel/*/dsa_structures/`
+- Example: `lib/dsa/bitmap.h` → `kernel/memory/dsa_structures/bitmap.c` (frame allocator)
+- Example: `lib/dsa/hashmap.h` → `kernel/fs/dsa_structures/hashmap.c` (open file table)
+
+## 10. Key Files Reference
 
 | File | Purpose |
 |------|---------|
@@ -213,9 +234,13 @@ make clean        # Remove build artifacts
 | `kernel/scheduler/dsa_structures/priority_queue.c` | Priority min-heap |
 | `lib/dsa/bitmap.c` | Bitmap data structure |
 | `lib/dsa/list.c` | Intrusive linked list |
+| `lib/cstd/string.c` | String functions (strlen, strcpy, etc.) |
+| `lib/cstd/memory.c` | Memory functions (memcpy, memset, etc.) |
+| `lib/cstd/stdio.c` | Kernel printf (kprintf) |
+| `kernel/utils/logging.c` | Kernel logging facility |
 | `config/os_config.h` | Types, macros, configuration |
 
-## 10. Do NOT
+## 11. Do NOT
 
 - Add dynamic allocation in boot code (heap not ready)
 - Use libc functions in kernel (use `lib/cstd/` or implement your own)
@@ -224,4 +249,5 @@ make clean        # Remove build artifacts
 - Free memory not allocated by kmalloc (undefined behavior)
 - Use kmalloc before `heap_init()` completes
 - Enable interrupts before IDT is loaded
+- Duplicate implementations (use lib/dsa and lib/cstd as base)
 

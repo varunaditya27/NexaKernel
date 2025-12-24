@@ -121,6 +121,11 @@ C_SOURCES += $(KERNEL_DIR)/scheduler/task.c \
 C_SOURCES += $(LIB_DIR)/dsa/bitmap.c \
              $(LIB_DIR)/dsa/list.c
 
+# C standard library sources
+C_SOURCES += $(LIB_DIR)/cstd/string.c \
+             $(LIB_DIR)/cstd/memory.c \
+             $(LIB_DIR)/cstd/stdio.c
+
 # ---------------------------------------------------------------------------
 # Object Files
 # ---------------------------------------------------------------------------
