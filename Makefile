@@ -90,6 +90,9 @@ ASM_SOURCES = $(BOOT_DIR)/multiboot_header.asm \
 # Assembly sources (kernel interrupts)
 ASM_SOURCES += $(KERNEL_DIR)/interrupts/isr_stubs.asm
 
+# Assembly sources (scheduler)
+ASM_SOURCES += $(KERNEL_DIR)/scheduler/context_switch.asm
+
 # C sources (kernel core)
 C_SOURCES = $(KERNEL_DIR)/kernel.c \
             $(KERNEL_DIR)/panic.c
@@ -108,12 +111,15 @@ C_SOURCES += $(KERNEL_DIR)/drivers/vga_text.c \
              $(KERNEL_DIR)/drivers/timer.c \
              $(KERNEL_DIR)/drivers/keyboard.c
 
+# Scheduler sources
+C_SOURCES += $(KERNEL_DIR)/scheduler/task.c \
+             $(KERNEL_DIR)/scheduler/scheduler.c \
+             $(KERNEL_DIR)/scheduler/dsa_structures/round_robin_queue.c \
+             $(KERNEL_DIR)/scheduler/dsa_structures/priority_queue.c
+
 # Data structure library sources
 C_SOURCES += $(LIB_DIR)/dsa/bitmap.c \
              $(LIB_DIR)/dsa/list.c
-
-# TODO: Add more source files as they are implemented
-# C_SOURCES += $(KERNEL_DIR)/scheduler/scheduler.c
 
 # ---------------------------------------------------------------------------
 # Object Files
@@ -149,6 +155,7 @@ dirs:
 	@mkdir -p $(BUILD_DIR)/$(KERNEL_DIR)/interrupts
 	@mkdir -p $(BUILD_DIR)/$(KERNEL_DIR)/memory
 	@mkdir -p $(BUILD_DIR)/$(KERNEL_DIR)/scheduler
+	@mkdir -p $(BUILD_DIR)/$(KERNEL_DIR)/scheduler/dsa_structures
 	@mkdir -p $(BUILD_DIR)/$(KERNEL_DIR)/fs
 	@mkdir -p $(BUILD_DIR)/$(KERNEL_DIR)/ipc
 	@mkdir -p $(BUILD_DIR)/$(KERNEL_DIR)/utils
