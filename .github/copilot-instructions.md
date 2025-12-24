@@ -92,7 +92,47 @@ make clean        # Remove build artifacts
 - `interrupts_enable()`/`interrupts_disable()` - Global interrupt control
 - `interrupts_save_and_disable()` - Critical section helpers
 
-## 5. Device Drivers
+## 5. Task Scheduling
+
+**Task Control Block** (`kernel/scheduler/task.h`, `task.c`):
+- Task states: UNUSED, CREATING, READY, RUNNING, BLOCKED, SLEEPING, TERMINATED, ZOMBIE
+- Priority levels: 0 (highest) to 7 (lowest, idle)
+- `task_system_init()` - Initialize task subsystem
+- `task_create(name, entry, arg, priority, stack_size)` - Create new task
+- `task_exit(code)` - Terminate current task
+- `task_current()` - Get currently running task
+- `task_yield()` - Voluntarily give up CPU
+- `task_sleep(ticks)` - Sleep for specified timer ticks
+
+**Scheduler** (`kernel/scheduler/scheduler.h`, `scheduler.c`):
+- Supports Round-Robin and Priority-based scheduling policies
+- `scheduler_init()` - Initialize scheduler and create idle task
+- `scheduler_start()` - Begin multitasking (does not return)
+- `schedule()` - Trigger reschedule (pick next task)
+- `scheduler_add_task(task)` - Add task to ready queue
+- `scheduler_remove_task(task)` - Remove task from queues
+- `scheduler_get_policy()` - Get current scheduling policy
+- `scheduler_set_policy(policy)` - Set scheduling policy
+
+**Context Switch** (`kernel/scheduler/context_switch.asm`):
+- `context_switch(old_sp_ptr, new_sp)` - Switch between tasks
+- `switch_to_task(task)` - Switch to a task (first time)
+- `task_switch_asm(old_task, new_task)` - Full context switch with C integration
+- Saves/restores: EAX, EBX, ECX, EDX, ESI, EDI, EBP, ESP, EIP
+
+**Scheduler DSA** (`kernel/scheduler/dsa_structures/`):
+- `round_robin_queue.c` - Circular queue (FIFO) for round-robin scheduling
+- `priority_queue.c` - Min-heap for priority-based scheduling
+- Operations: enqueue, dequeue, peek, remove, count
+
+**Configuration** (`config/os_config.h`):
+- `SCHEDULER_PREEMPTIVE` - 1 for preemptive, 0 for cooperative
+- `SCHEDULER_TICK_HZ` - Timer frequency (default 100 Hz)
+- `SCHEDULER_TIME_SLICE` - Ticks per time slice (default 10)
+- `MAX_TASKS` - Maximum concurrent tasks (default 64)
+- `MAX_PRIORITY_LEVELS` - Priority levels (default 8)
+
+## 6. Device Drivers
 
 **VGA Text Mode** (`kernel/drivers/vga_text.c`):
 - Direct 0xB8000 buffer access, 80x25 text
@@ -116,7 +156,7 @@ make clean        # Remove build artifacts
 **Driver API** (`kernel/drivers/drivers.h`):
 - Complete API for VGA, timer, keyboard
 
-## 6. Coding Conventions
+## 7. Coding Conventions
 
 - **Memory:** Use `kmalloc()`/`kfree()` for kernel heap (not available in early boot)
 - **I/O Ports:** Use `inb()`, `outb()`, etc. from `boot/startup.asm`
@@ -125,7 +165,7 @@ make clean        # Remove build artifacts
 - **ASM↔C:** Assembly functions are `global`, C externs use plain C linkage
 - **Types:** Use `uint32_t`, `size_t`, `uintptr_t` from `os_config.h`
 
-## 7. Critical Cross-Component Notes
+## 8. Critical Cross-Component Notes
 
 - **Boot code:** NO dynamic memory. Stack and GDT are statically allocated.
 - **GDT segments:** Code=0x08, Data=0x10 (see `boot/gdt.asm`)
@@ -136,8 +176,12 @@ make clean        # Remove build artifacts
 - **IDT:** Must be initialized before enabling interrupts
 - **PIC:** Remapped to avoid conflicts with CPU exceptions (vectors 0-31)
 - **Interrupts:** Disabled during early boot, enabled after all init complete
+- **Scheduler:** Must be initialized after heap (needs kmalloc for task stacks)
+- **Context switch:** Saves/restores registers via PUSHA/POPA, uses task->stack_pointer
+- **Timer callback:** Drives preemptive scheduling via `pit_register_callback()`
+- **Idle task:** Created automatically by scheduler, runs at lowest priority
 
-## 8. Key Files Reference
+## 9. Key Files Reference
 
 | File | Purpose |
 |------|---------|
@@ -159,11 +203,19 @@ make clean        # Remove build artifacts
 | `kernel/drivers/vga_text.c` | VGA text mode console |
 | `kernel/drivers/timer.c` | PIT timer driver |
 | `kernel/drivers/keyboard.c` | PS/2 keyboard driver |
+| `kernel/scheduler/task.h` | Task control block and task API |
+| `kernel/scheduler/task.c` | Task management implementation |
+| `kernel/scheduler/scheduler.h` | Scheduler public API |
+| `kernel/scheduler/scheduler.c` | Scheduler core logic |
+| `kernel/scheduler/context_switch.asm` | Low-level context switch |
+| `kernel/scheduler/dsa_structures.h` | Scheduler queue interfaces |
+| `kernel/scheduler/dsa_structures/round_robin_queue.c` | Round-robin FIFO queue |
+| `kernel/scheduler/dsa_structures/priority_queue.c` | Priority min-heap |
 | `lib/dsa/bitmap.c` | Bitmap data structure |
 | `lib/dsa/list.c` | Intrusive linked list |
 | `config/os_config.h` | Types, macros, configuration |
 
-## 9. Do NOT
+## 10. Do NOT
 
 - Add dynamic allocation in boot code (heap not ready)
 - Use libc functions in kernel (use `lib/cstd/` or implement your own)
