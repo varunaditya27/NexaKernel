@@ -1,7 +1,3 @@
-#include <lib/dsa/bitmap.h>
-#include <stddef.h>
-#include <stdint.h>
-
 /*
  * ===========================================================================
  * kernel/memory/frame_allocator.c

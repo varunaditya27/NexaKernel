@@ -1,6 +1,3 @@
-#include <lib/dsa/bitmap.h>
-#include <stddef.h>
-
 /*
  * ===========================================================================
  * kernel/memory/dsa_structures/bitmap.c
