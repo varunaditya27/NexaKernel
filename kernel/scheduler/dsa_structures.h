@@ -36,12 +36,22 @@
 
 /* ---------------------------------------------------------------------------
  * Scheduler Policy Configuration
+ * ---------------------------------------------------------------------------
+ * Scheduling policy constants are defined in scheduler.h to avoid
+ * duplicate definitions. Include scheduler.h for SCHED_POLICY_* macros.
+ * 
+ * Policies:
+ *   SCHED_POLICY_ROUND_ROBIN (0) - FIFO queue with time slicing
+ *   SCHED_POLICY_PRIORITY    (1) - Min-heap by priority value
+ *   SCHED_POLICY_MLFQ        (2) - Multi-Level Feedback Queue (future)
  * --------------------------------------------------------------------------- */
 
-/* Scheduling policies */
+/* Only define if not already defined (avoid redefinition) */
+#ifndef SCHED_POLICY_ROUND_ROBIN
 #define SCHED_POLICY_ROUND_ROBIN    0
 #define SCHED_POLICY_PRIORITY       1
 #define SCHED_POLICY_MLFQ           2   /* Multi-Level Feedback Queue (future) */
+#endif
 
 /* Default scheduling policy */
 #ifndef SCHEDULER_POLICY
