@@ -1,8 +1,8 @@
 #ifndef NEXA_TRIE_H
 #define NEXA_TRIE_H
 
-#include <stddef.h>
-#include <stdbool.h>
+#include "../../config/os_config.h"
+
 
 /*
  * lib/dsa/trie.h

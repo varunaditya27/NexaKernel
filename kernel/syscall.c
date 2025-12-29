@@ -266,7 +266,7 @@ static int32_t sys_write_handler(interrupt_frame_t *frame)
     if (fd == STDOUT_FD || fd == STDERR_FD) {
         /* Set error color for stderr */
         if (fd == STDERR_FD) {
-            vga_set_color(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK);
+            vga_set_color(VGA_ENTRY_COLOR(VGA_COLOR_LIGHT_RED, VGA_COLOR_BLACK));
         }
         
         /* Write each character to screen */
@@ -276,7 +276,7 @@ static int32_t sys_write_handler(interrupt_frame_t *frame)
         
         /* Reset color after stderr */
         if (fd == STDERR_FD) {
-            vga_set_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+            vga_set_color(VGA_ENTRY_COLOR(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK));
         }
         
         return (int32_t)count;

@@ -91,6 +91,13 @@ static uint32_t schedule_call_count = 0;
 static uint32_t idle_time = 0;
 
 /* ---------------------------------------------------------------------------
+ * Forward Declarations
+ * --------------------------------------------------------------------------- */
+void schedule(void);
+void scheduler_add_task(task_t *task);
+void scheduler_remove_task(task_t *task);
+
+/* ---------------------------------------------------------------------------
  * Idle Task Implementation
  * ---------------------------------------------------------------------------
  * The idle task runs when no other task is ready. It puts the CPU into

@@ -1,8 +1,8 @@
 #ifndef NEXA_QUEUE_H
 #define NEXA_QUEUE_H
 
-#include <stddef.h>
-#include <stdbool.h>
+#include "../../config/os_config.h"
+
 
 /*
  * lib/dsa/queue.h

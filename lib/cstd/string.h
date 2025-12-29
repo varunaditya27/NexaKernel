@@ -22,7 +22,7 @@
 #ifndef NEXA_CSTD_STRING_H
 #define NEXA_CSTD_STRING_H
 
-#include <stddef.h>
+#include "../../config/os_config.h"
 
 /* ---------------------------------------------------------------------------
  * String Length Functions

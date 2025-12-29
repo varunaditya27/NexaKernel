@@ -12,9 +12,8 @@
  */
 
 #include "stdio.h"
+#include "../../config/os_config.h"
 #include <stdarg.h>
-#include <stddef.h>
-#include <stdint.h>
 
 /* ---------------------------------------------------------------------------
  * External Dependencies

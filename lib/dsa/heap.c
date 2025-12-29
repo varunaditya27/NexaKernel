@@ -13,7 +13,7 @@
 extern void *kmalloc(size_t size);
 extern void kfree(void *ptr);
 
-bool heap_init(heap_t *heap, size_t capacity, heap_comparator_t comparator) {
+bool dsa_heap_init(heap_t *heap, size_t capacity, heap_comparator_t comparator) {
     if (!heap || capacity == 0 || !comparator) return false;
 
     heap->buffer = (void **)kmalloc(capacity * sizeof(void *));
@@ -26,7 +26,7 @@ bool heap_init(heap_t *heap, size_t capacity, heap_comparator_t comparator) {
     return true;
 }
 
-void heap_destroy(heap_t *heap) {
+void dsa_heap_destroy(heap_t *heap) {
     if (!heap) return;
     if (heap->buffer) {
         kfree(heap->buffer);
@@ -85,7 +85,7 @@ bool heap_insert(heap_t *heap, void *data) {
 }
 
 void *heap_extract(heap_t *heap) {
-    if (heap_is_empty(heap)) return NULL;
+    if (dsa_heap_is_empty(heap)) return NULL;
 
     void *data = heap->buffer[0];
     heap->buffer[0] = heap->buffer[heap->size - 1];
@@ -95,15 +95,15 @@ void *heap_extract(heap_t *heap) {
     return data;
 }
 
-void *heap_peek(heap_t *heap) {
-    if (heap_is_empty(heap)) return NULL;
+void *dsa_heap_peek(heap_t *heap) {
+    if (dsa_heap_is_empty(heap)) return NULL;
     return heap->buffer[0];
 }
 
-bool heap_is_empty(heap_t *heap) {
+bool dsa_heap_is_empty(heap_t *heap) {
     return heap == NULL || heap->size == 0;
 }
 
-size_t heap_size(heap_t *heap) {
+size_t dsa_heap_size(heap_t *heap) {
     return heap ? heap->size : 0;
 }

@@ -25,12 +25,26 @@
 # ===========================================================================
 
 # ---------------------------------------------------------------------------
-# Tool Configuration (Native Linux GCC)
+# Tool Configuration (Auto-detect cross-compiler on macOS)
 # ---------------------------------------------------------------------------
-CC      = gcc
-LD      = ld
+# On macOS, we need a cross-compiler for ELF output
+# On Linux, native GCC with -m32 works fine
+UNAME_S := $(shell uname -s)
+
+ifeq ($(UNAME_S),Darwin)
+    # macOS - use cross-compiler
+    CROSS_PREFIX = x86_64-elf-
+    CC      = $(CROSS_PREFIX)gcc
+    LD      = $(CROSS_PREFIX)ld
+    OBJCOPY = $(CROSS_PREFIX)objcopy
+else
+    # Linux - use native tools
+    CC      = gcc
+    LD      = ld
+    OBJCOPY = objcopy
+endif
+
 AS      = nasm
-OBJCOPY = objcopy
 
 # ---------------------------------------------------------------------------
 # Directory Structure
@@ -47,6 +61,11 @@ ISO_DIR      = $(BUILD_DIR)/isofiles
 # Include additional build configuration
 # ---------------------------------------------------------------------------
 -include $(CONFIG_DIR)/build_flags.mk
+
+# ---------------------------------------------------------------------------
+# GCC Built-in Include Path (for stdarg.h, etc.)
+# ---------------------------------------------------------------------------
+GCC_INCLUDE = $(shell $(CC) -print-file-name=include)
 
 # ---------------------------------------------------------------------------
 # Compiler Flags
@@ -67,6 +86,7 @@ CFLAGS = -m32 \
          -fno-pic \
          -nostdlib \
          -nostdinc \
+         -isystem $(GCC_INCLUDE) \
          -fno-stack-protector \
          -fno-exceptions \
          -fno-unwind-tables \
@@ -118,9 +138,9 @@ C_SOURCES = $(KERNEL_DIR)/kernel.c \
 C_SOURCES += $(KERNEL_DIR)/memory/frame_allocator.c \
              $(KERNEL_DIR)/memory/heap_allocator.c
 
-# Memory DSA structures
-C_SOURCES += $(KERNEL_DIR)/memory/dsa_structures/bitmap.c \
-             $(KERNEL_DIR)/memory/dsa_structures/freelist.c \
+# Memory DSA structures (bitmap.c is integrated into frame_allocator.c)
+# freelist.c and buddy_tree.c provide alternative allocator implementations
+C_SOURCES += $(KERNEL_DIR)/memory/dsa_structures/freelist.c \
              $(KERNEL_DIR)/memory/dsa_structures/buddy_tree.c
 
 # ---------------------------------------------------------------------------

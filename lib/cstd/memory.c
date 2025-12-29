@@ -13,7 +13,7 @@
  */
 
 #include "memory.h"
-#include <stdint.h>
+#include "../../config/os_config.h"
 
 /* ---------------------------------------------------------------------------
  * Memory Copy Functions
