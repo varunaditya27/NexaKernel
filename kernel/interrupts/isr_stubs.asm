@@ -255,3 +255,73 @@ global irq_stub_table
 irq_stub_table:
     dd irq0, irq1, irq2, irq3, irq4, irq5, irq6, irq7
     dd irq8, irq9, irq10, irq11, irq12, irq13, irq14, irq15
+
+; ===========================================================================
+; System Call Stub (INT 0x80)
+; ===========================================================================
+; Handles system calls from userland. Parameters are passed in registers:
+;   EAX = syscall number
+;   EBX = arg1
+;   ECX = arg2
+;   EDX = arg3
+;   ESI = arg4
+;   EDI = arg5
+;
+; Return value is placed in EAX.
+; ===========================================================================
+section .text
+
+extern syscall_handler      ; C handler for system calls
+
+global syscall_stub
+syscall_stub:
+    push dword 0            ; Push dummy error code
+    push dword 0x80         ; Push interrupt number (128)
+
+    ; Save general-purpose registers
+    pusha
+
+    ; Save segment registers
+    push ds
+    push es
+    push fs
+    push gs
+
+    ; Load kernel data segment
+    mov ax, 0x10            ; Kernel data segment selector
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
+    ; Call C handler with pointer to interrupt frame
+    push esp                ; Pass pointer to interrupt_frame_t
+    call syscall_handler    ; Call C syscall handler
+    add esp, 4              ; Clean up parameter
+
+    ; Store return value (in EAX) into the saved EAX on stack
+    ; The saved EAX is at offset 28 from current ESP after pops
+    ; Stack layout: gs, fs, es, ds, edi, esi, ebp, esp_dummy, ebx, edx, ecx, eax
+    ; Offsets: gs=0, fs=4, es=8, ds=12, edi=16, esi=20, ebp=24, esp=28, ebx=32, edx=36, ecx=40, eax=44
+    mov [esp + 44], eax     ; Store return value in saved EAX position
+
+    ; Restore segment registers
+    pop gs
+    pop fs
+    pop es
+    pop ds
+
+    ; Restore general-purpose registers (EAX will now contain return value)
+    popa
+
+    ; Clean up error code and interrupt number from stack
+    add esp, 8
+
+    ; Return from interrupt
+    iret
+
+; Export syscall stub address for IDT setup
+section .data
+global syscall_stub_addr
+syscall_stub_addr:
+    dd syscall_stub

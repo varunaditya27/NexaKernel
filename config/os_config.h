@@ -93,9 +93,14 @@
 #define NULL                    ((void *)0)
 #endif
 
-/* Boolean type */
+/* Boolean type - handle C23 and older C standards */
 #ifndef __cplusplus
-typedef enum { false = 0, true = 1 } bool;
+#if __STDC_VERSION__ >= 202311L
+    /* C23: bool, true, false are keywords - no definition needed */
+#elif !defined(__bool_true_false_are_defined)
+    typedef enum { false = 0, true = 1 } bool;
+    #define __bool_true_false_are_defined 1
+#endif
 #endif
 
 /* ---------------------------------------------------------------------------
@@ -106,7 +111,13 @@ void panic_impl(const char *file, int line, const char *message);
 
 /* ---------------------------------------------------------------------------
  * Fixed-width Integer Types
+ * ---------------------------------------------------------------------------
+ * Only define if not already provided by stdint.h
  * --------------------------------------------------------------------------- */
+#ifndef _STDINT_H
+#ifndef __STDINT_H__
+#ifndef _STDINT_GCC_H
+
 typedef signed char         int8_t;
 typedef unsigned char       uint8_t;
 typedef signed short        int16_t;
@@ -116,9 +127,22 @@ typedef unsigned int        uint32_t;
 typedef signed long long    int64_t;
 typedef unsigned long long  uint64_t;
 
-typedef uint32_t            size_t;
-typedef int32_t             ssize_t;
 typedef uint32_t            uintptr_t;
 typedef int32_t             intptr_t;
+
+#endif /* _STDINT_GCC_H */
+#endif /* __STDINT_H__ */
+#endif /* _STDINT_H */
+
+/* size_t and ssize_t are not in stdint.h, define always */
+#ifndef _SIZE_T_DEFINED
+typedef unsigned int        size_t;
+#define _SIZE_T_DEFINED
+#endif
+
+#ifndef _SSIZE_T_DEFINED
+typedef signed int          ssize_t;
+#define _SSIZE_T_DEFINED
+#endif
 
 #endif /* OS_CONFIG_H */

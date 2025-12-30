@@ -22,6 +22,7 @@
 #ifndef NEXA_CSTD_STDIO_H
 #define NEXA_CSTD_STDIO_H
 
+#include "../../config/os_config.h"
 #include <stdarg.h>
 
 /* ---------------------------------------------------------------------------

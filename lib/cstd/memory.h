@@ -25,7 +25,7 @@
 #ifndef NEXA_CSTD_MEMORY_H
 #define NEXA_CSTD_MEMORY_H
 
-#include <stddef.h>
+#include "../../config/os_config.h"
 
 /* ---------------------------------------------------------------------------
  * Memory Copy Functions

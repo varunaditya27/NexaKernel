@@ -1,8 +1,8 @@
 #ifndef NEXA_HEAP_H
 #define NEXA_HEAP_H
 
-#include <stddef.h>
-#include <stdbool.h>
+#include "../../config/os_config.h"
+
 
 /*
  * lib/dsa/heap.h
@@ -23,10 +23,10 @@ typedef struct heap {
 } heap_t;
 
 /* Initialize a heap */
-bool heap_init(heap_t *heap, size_t capacity, heap_comparator_t comparator);
+bool dsa_heap_init(heap_t *heap, size_t capacity, heap_comparator_t comparator);
 
 /* Destroy the heap */
-void heap_destroy(heap_t *heap);
+void dsa_heap_destroy(heap_t *heap);
 
 /* Insert an element */
 bool heap_insert(heap_t *heap, void *data);
@@ -35,12 +35,12 @@ bool heap_insert(heap_t *heap, void *data);
 void *heap_extract(heap_t *heap);
 
 /* Peek at the top element */
-void *heap_peek(heap_t *heap);
+void *dsa_heap_peek(heap_t *heap);
 
 /* Check if heap is empty */
-bool heap_is_empty(heap_t *heap);
+bool dsa_heap_is_empty(heap_t *heap);
 
 /* Get current size */
-size_t heap_size(heap_t *heap);
+size_t dsa_heap_size(heap_t *heap);
 
 #endif /* NEXA_HEAP_H */

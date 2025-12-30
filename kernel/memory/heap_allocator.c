@@ -1,6 +1,5 @@
+#include "../../config/os_config.h"
 #include <lib/dsa/list.h>
-#include <stddef.h>
-#include <stdint.h>
 
 /*
  * ===========================================================================

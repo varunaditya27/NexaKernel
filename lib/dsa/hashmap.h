@@ -1,9 +1,9 @@
 #ifndef NEXA_HASHMAP_H
 #define NEXA_HASHMAP_H
 
-#include <stddef.h>
-#include <stdbool.h>
-#include <stdint.h>
+#include "../../config/os_config.h"
+
+
 
 /*
  * lib/dsa/hashmap.h

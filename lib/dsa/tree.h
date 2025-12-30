@@ -1,8 +1,8 @@
 #ifndef NEXA_TREE_H
 #define NEXA_TREE_H
 
-#include <stddef.h>
-#include <stdbool.h>
+#include "../../config/os_config.h"
+
 #include "list.h"
 
 /*

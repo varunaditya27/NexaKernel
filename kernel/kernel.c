@@ -53,6 +53,11 @@ extern void cpu_cli(void);          /* Disable interrupts */
 extern void cpu_sti(void);          /* Enable interrupts */
 
 /* ---------------------------------------------------------------------------
+ * External Functions (from syscall.c)
+ * --------------------------------------------------------------------------- */
+extern void syscall_init(void);     /* Initialize syscall handler (INT 0x80) */
+
+/* ---------------------------------------------------------------------------
  * Forward Declarations
  * --------------------------------------------------------------------------- */
 static void early_console_init(void);
@@ -377,6 +382,13 @@ static void init_interrupts(void)
     early_console_print("  - IRQ handlers:    ");
     irq_init();
     early_console_print("OK (PIC remapped)\n");
+
+    /* -----------------------------------------------------------------------
+     * Initialize System Call Handler (INT 0x80)
+     * ----------------------------------------------------------------------- */
+    early_console_print("  - Syscall handler: ");
+    syscall_init();
+    early_console_print("OK (INT 0x80)\n");
 }
 
 /* ---------------------------------------------------------------------------

@@ -13,7 +13,7 @@
  */
 
 #include "string.h"
-#include <stdint.h>
+#include "../../config/os_config.h"
 
 /* ---------------------------------------------------------------------------
  * String Length Functions
