@@ -12,39 +12,24 @@
 #   make debug    - Run in QEMU with GDB server
 #   make clean    - Remove build artifacts
 #
-# Prerequisites (Linux):
-#   - gcc with 32-bit support (gcc-multilib on Debian/Ubuntu)
-#   - nasm
-#   - ld (binutils)
-#   - grub-mkrescue, xorriso (for ISO creation)
-#   - qemu-system-i386
+# Prerequisites (Linux - Debian/Ubuntu):
+#   sudo apt install build-essential gcc-multilib nasm qemu-system-x86 grub-pc-bin xorriso gdb
 #
-# Install on Debian/Ubuntu:
-#   sudo apt install build-essential gcc-multilib nasm qemu-system-x86 grub-pc-bin xorriso
+# Prerequisites (Linux - Fedora/RHEL):
+#   sudo dnf install gcc gcc-c++ glibc-devel.i686 nasm qemu-system-x86 grub2-tools-extra xorriso gdb
+#
+# Prerequisites (Linux - Arch):
+#   sudo pacman -S base-devel lib32-glibc nasm qemu grub xorriso gdb
 #
 # ===========================================================================
 
 # ---------------------------------------------------------------------------
-# Tool Configuration (Auto-detect cross-compiler on macOS)
+# Tool Configuration (Native Linux GCC with 32-bit support)
 # ---------------------------------------------------------------------------
-# On macOS, we need a cross-compiler for ELF output
-# On Linux, native GCC with -m32 works fine
-UNAME_S := $(shell uname -s)
-
-ifeq ($(UNAME_S),Darwin)
-    # macOS - use cross-compiler
-    CROSS_PREFIX = x86_64-elf-
-    CC      = $(CROSS_PREFIX)gcc
-    LD      = $(CROSS_PREFIX)ld
-    OBJCOPY = $(CROSS_PREFIX)objcopy
-else
-    # Linux - use native tools
-    CC      = gcc
-    LD      = ld
-    OBJCOPY = objcopy
-endif
-
+CC      = gcc
+LD      = ld
 AS      = nasm
+OBJCOPY = objcopy
 
 # ---------------------------------------------------------------------------
 # Directory Structure
