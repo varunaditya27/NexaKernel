@@ -18,10 +18,11 @@
 /* ---------------------------------------------------------------------------
  * External Dependencies
  * ---------------------------------------------------------------------------
- * These functions must be provided by the kernel's VGA driver
+ * These functions must be provided by the kernel's drivers
  * --------------------------------------------------------------------------- */
 extern void vga_putchar(char c);
 extern void vga_write_string(const char *s);
+extern void serial_putchar(char c);
 
 /* ---------------------------------------------------------------------------
  * Internal Helper Functions
@@ -33,6 +34,7 @@ extern void vga_write_string(const char *s);
 static void putchar_internal(char c)
 {
     vga_putchar(c);
+    serial_putchar(c);
 }
 
 /**

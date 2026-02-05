@@ -34,6 +34,7 @@
 
 #include "drivers.h"
 #include "../interrupts/interrupts.h"
+#include "../../lib/cstd/stdio.h"
 
 /* ---------------------------------------------------------------------------
  * External Functions (from startup.asm)
@@ -400,6 +401,13 @@ void keyboard_init(void)
     kb_head = 0;
     kb_tail = 0;
     key_callback = NULL;
+
+    /* Enable the first PS/2 port */
+    keyboard_wait_input();
+    outb(KB_COMMAND_PORT, 0xAE);
+
+    /* Enable scanning on the keyboard */
+    keyboard_send_command(KB_CMD_ENABLE);
 
     /* Flush any pending data from the keyboard buffer */
     while (inb(KB_STATUS_PORT) & KB_STATUS_OUTPUT_FULL) {

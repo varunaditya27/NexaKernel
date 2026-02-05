@@ -408,4 +408,43 @@ void keyboard_set_leds(bool scroll_lock, bool num_lock, bool caps_lock);
 typedef void (*keyboard_callback_t)(key_event_t *event);
 void keyboard_register_callback(keyboard_callback_t callback);
 
+/* ===========================================================================
+ * Serial Port (UART) Driver (serial.c)
+ * ===========================================================================
+ * The serial driver provides communication via the COM1 port. This is
+ * primarily used for kernel debugging and logging to the host terminal.
+ * =========================================================================== */
+
+#define SERIAL_COM1_PORT    0x3F8
+
+/**
+ * @brief Initialize the serial port
+ * @return 0 on success, non-zero on failure
+ */
+int serial_init(void);
+
+/**
+ * @brief Write a character to the serial port
+ * @param c Character to write
+ */
+void serial_putchar(char c);
+
+/**
+ * @brief Write a string to the serial port
+ * @param str String to write
+ */
+void serial_write_string(const char *str);
+
+/**
+ * @brief Check if serial port has received data
+ * @return true if data is available
+ */
+bool serial_received(void);
+
+/**
+ * @brief Read a character from the serial port
+ * @return Character read
+ */
+char serial_getchar(void);
+
 #endif /* DRIVERS_H */

@@ -140,7 +140,8 @@ C_SOURCES += $(KERNEL_DIR)/interrupts/idt.c \
 # ---------------------------------------------------------------------------
 C_SOURCES += $(KERNEL_DIR)/drivers/vga_text.c \
              $(KERNEL_DIR)/drivers/timer.c \
-             $(KERNEL_DIR)/drivers/keyboard.c
+             $(KERNEL_DIR)/drivers/keyboard.c \
+             $(KERNEL_DIR)/drivers/serial.c
 
 # ---------------------------------------------------------------------------
 # Source Files - Scheduler

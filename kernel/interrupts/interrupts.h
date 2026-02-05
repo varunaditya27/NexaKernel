@@ -266,6 +266,17 @@ void irq_disable(uint8_t irq);
  */
 bool irq_is_spurious(uint8_t irq);
 
+/*
+ * irq_get_count - Get the count of a specific IRQ
+ * ---------------------------------------------------------------------------
+ * Parameters:
+ *   irq - IRQ number (0-15)
+ *
+ * Returns:
+ *   Number of times the IRQ has been handled
+ */
+uint32_t irq_get_count(uint8_t irq);
+
 /* ---------------------------------------------------------------------------
  * PIC Functions (irq.c)
  * --------------------------------------------------------------------------- */

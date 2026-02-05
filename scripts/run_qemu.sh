@@ -54,6 +54,25 @@ case "${1:-}" in
         echo "Connect GDB with: target remote localhost:1234"
         $QEMU -kernel "$KERNEL_ELF" $QEMU_OPTS -s -S
         ;;
+    --terminal)
+        if [ ! -f "$KERNEL_ELF" ]; then
+            echo "Error: Kernel not found. Run 'make' first."
+            exit 1
+        fi
+        echo "Starting NexaKernel in TERMINAL mode..."
+        # -curses renders the VGA buffer to the terminal using ncurses
+        $QEMU -kernel "$KERNEL_ELF" $QEMU_OPTS -curses
+        ;;
+    --terminal-debug)
+        if [ ! -f "$KERNEL_ELF" ]; then
+            echo "Error: Kernel not found. Run 'make' first."
+            exit 1
+        fi
+        echo "Starting NexaKernel in TERMINAL DEBUG mode..."
+        echo "Connect GDB with: target remote localhost:1234"
+        # Combine debug and curses
+        $QEMU -kernel "$KERNEL_ELF" $QEMU_OPTS -s -S -curses
+        ;;
     *)
         if [ ! -f "$KERNEL_ELF" ]; then
             echo "Error: Kernel not found. Run 'make' first."

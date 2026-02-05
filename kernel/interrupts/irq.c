@@ -13,9 +13,9 @@
  * 3. Spurious interrupt detection
  *
  * 8259 PIC Architecture:
- * ┌──────────────────────────────────────────────────────────────────────────┐
+ * ┌─────────────────────────────────────────────────────────────────────────┐
  * │  The PC has two cascaded 8259 PICs providing 15 usable IRQ lines:       │
- * │                                                                          │
+ * │                                                                         │
  * │  Master PIC (IRQ 0-7)          Slave PIC (IRQ 8-15)                     │
  * │  ┌─────────────────┐           ┌─────────────────┐                      │
  * │  │ IRQ0 - Timer    │           │ IRQ8  - RTC     │                      │
@@ -27,7 +27,7 @@
  * │  │ IRQ6 - Floppy   │           │ IRQ14 - ATA Pri │                      │
  * │  │ IRQ7 - LPT1     │           │ IRQ15 - ATA Sec │                      │
  * │  └─────────────────┘           └─────────────────┘                      │
- * └──────────────────────────────────────────────────────────────────────────┘
+ * └─────────────────────────────────────────────────────────────────────────┘
  *
  * PIC Remapping:
  *   By default, the BIOS maps IRQs 0-7 to vectors 0x08-0x0F, which conflicts
@@ -389,13 +389,19 @@ void irq_handler(interrupt_frame_t *frame)
     /* Update statistics */
     irq_counts[irq]++;
 
+    /* 
+     * Send End-Of-Interrupt to PIC BEFORE calling the handler.
+     * This is necessary because the handler might trigger a context switch
+     * (e.g., timer interrupt calling the scheduler). If we don't send EOI
+     * before switching, the PIC will block further interrupts until the
+     * original task is eventually scheduled back and finishes this function.
+     */
+    pic_send_eoi(irq);
+
     /* Call the registered handler */
     if (irq_handlers[irq] != NULL) {
         irq_handlers[irq](frame);
     }
-
-    /* Send End-Of-Interrupt to PIC */
-    pic_send_eoi(irq);
 }
 
 /* ---------------------------------------------------------------------------
