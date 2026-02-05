@@ -1,0 +1,80 @@
+# Quick Fix Reference - VGA Display Issue
+
+## The Problem
+```
+"guest has not initialized the display (yet)"
+```
+Appears in QEMU window when running NexaKernel instead of boot messages.
+
+## The Fix (ALREADY APPLIED ✅)
+
+**What was added to `kernel/kernel.c`:**
+
+1. **Cursor update function** that communicates with VGA hardware via I/O ports
+2. **Call from `early_console_init()`** to activate display when kernel boots
+3. **Call from `early_console_print()`** after each text output to keep QEMU in sync
+
+## Build & Test
+
+```bash
+cd /home/varunaditya/Projects/NexaKernel
+
+# Rebuild
+make clean && make
+
+# Test
+make run
+```
+
+## What You Should See
+
+QEMU window shows (instead of "guest has not initialized"):
+
+```
+========================================
+  NexaKernel v0.1.0 - Booting...
+========================================
+
+[BOOT] Kernel loaded at: 0x00100000
+[BOOT] Kernel ends at: 0x...
+[BOOT] Kernel size: XX KB
+...
+```
+
+## If It Still Doesn't Work
+
+1. **Check compilation**: `ls -lh build/kernel.elf` (should be >100KB)
+2. **Verify QEMU**: `qemu-system-i386 --version` (should show 6.x or newer)
+3. **Use GDB**: 
+   ```bash
+   make debug
+   # In another terminal:
+   gdb build/kernel.elf -ex "target remote localhost:1234"
+   ```
+4. **Check with nographic**:
+   ```bash
+   qemu-system-i386 -kernel build/kernel.elf -serial file:output.txt
+   cat output.txt
+   ```
+
+## Technical Explanation
+
+- **Problem**: QEMU's VGA emulation wasn't awakened
+- **Solution**: Write to VGA CRT controller I/O ports (0x3D4/0x3D5)
+- **Result**: QEMU detects display activity and renders VGA buffer
+
+## Modified Code
+
+See `kernel/kernel.c` lines:
+- Line 68: Function declaration added
+- Lines 815-827: `early_console_init()` updated
+- Lines 829-844: New `early_console_update_cursor()` function
+- Line 904: `early_console_print()` updated
+
+## Status: ✅ DONE
+
+The fix has been applied. Now test it!
+
+```bash
+make && make run
+```
