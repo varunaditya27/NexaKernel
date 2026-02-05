@@ -543,7 +543,9 @@ Once the kernel is running, press these keys in the QEMU window:
 | `T` | Task List | All tasks with PIDs, states, priorities, roles |
 | `D` | DSA Info | All data structures used in the kernel |
 | `H` | Help | Command reference |
-| Any | Key Echo | Shows ASCII code (keyboard driver demo) |
+| `↑/↓` | Scroll View | Scroll the console history up or down (Arrow Keys) |
+| `PgUp/Dn`| Page Scroll | Scroll history by 5 lines |
+| ASCII | Key Echo | Shows ASCII code for standard keys |
 
 ### New: Data Structures Command (Press 'D')
 
@@ -564,22 +566,27 @@ Press `D` to see all data structures used in the kernel:
 |    Purpose: Manage variable-size memory blocks            |
 |    Ops: O(n) first-fit alloc, O(1) free + coalescing      |
 |                                                            |
-| 3. CIRCULAR QUEUE (scheduler/dsa_structures/)             |
+| 3. CIRCULAR BUFFER (kernel/drivers/vga_text.c)            |
+|    Used by: VGA Console History                           |
+|    Purpose: Store last 1000 lines of output for scrolling |
+|    Ops: O(1) write/read, Ring Buffer                      |
+|                                                            |
+| 4. CIRCULAR QUEUE (scheduler/dsa_structures/)             |
 |    Used by: Round-Robin Scheduler                         |
 |    Purpose: FIFO task queue for fair scheduling           |
 |    Ops: O(1) enqueue/dequeue                              |
 |                                                            |
-| 4. PRIORITY QUEUE/HEAP (lib/dsa/heap.c)                   |
+| 5. PRIORITY QUEUE/HEAP (lib/dsa/heap.c)                   |
 |    Used by: Priority Scheduler (alternative)              |
 |    Purpose: Always schedule highest-priority task         |
 |    Ops: O(log n) insert/extract-min                       |
 |                                                            |
-| 5. TRIE (kernel/fs/dsa_structures/trie.c)                 |
+| 6. TRIE (kernel/fs/dsa_structures/trie.c)                 |
 |    Used by: Filesystem path lookup                        |
 |    Purpose: Fast prefix-based path resolution             |
 |    Ops: O(k) lookup where k = path length                 |
 |                                                            |
-| 6. HASH MAP (kernel/fs/dsa_structures/hashmap.c)          |
+| 7. HASH MAP (kernel/fs/dsa_structures/hashmap.c)          |
 |    Used by: Open file table, inode cache                  |
 |    Purpose: O(1) average lookup for file descriptors      |
 |                                                            |
@@ -768,8 +775,9 @@ NexaKernel demonstrates these core OS concepts with **inline visual explanations
 1. **Visual ASCII Diagrams** - Every major concept has inline diagrams
 2. **Step-by-Step Explanations** - Algorithms shown with before/after states
 3. **Interactive Commands** - 6 commands to explore the running kernel
-4. **Dual Output** - Both VGA and serial terminal for easy viewing
-5. **Real-Time Statistics** - Watch counters increase as the kernel runs
+4. **Console History** - Scrollable VGA output (Arrow Keys)
+5. **Dual Output** - Both VGA and serial terminal for easy viewing
+6. **Real-Time Statistics** - Watch counters increase as the kernel runs
 
 ### Quick Reference Card for Presentation
 

@@ -153,6 +153,7 @@ This allows demonstration of kernel-to-user interactions and system-call-driven 
 A major goal of the project is showcasing realistic data-structure usage inside an operating system. NexaKernel integrates multiple DSAs across its subsystems:
 
 * **Circular Queues:** Task rotation in round-robin scheduling.
+* **Circular Buffers:** VGA console history for scrolling.
 * **Priority Queues and Heaps:** Priority-based scheduling and efficient task selection.
 * **Bitmaps:** Physical memory frame tracking.
 * **Buddy Tree:** Memory block allocation.
