@@ -438,7 +438,17 @@ int32_t syscall_handler(interrupt_frame_t *frame)
     }
     
     /* Call the handler */
+    
+    /* VISUAL: Flash indicator on */
+    extern void vga_visual_flash_syscall(void);
+    extern void vga_visual_clear_syscall(void);
+    
+    vga_visual_flash_syscall();
+    
     result = handler(frame);
+    
+    /* VISUAL: Flash indicator off */
+    vga_visual_clear_syscall();
     
     return result;
 }

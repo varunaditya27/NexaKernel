@@ -75,6 +75,11 @@ static void memory_test(void);
 static void interrupt_test(void);
 static void scheduler_test(void);
 
+/* HUD Functions (from vga_text.c) */
+extern void vga_update_status_bar(const char *left, const char *right);
+extern void vga_log_msg(const char *msg);
+
+
 /* ---------------------------------------------------------------------------
  * VGA Text Mode Constants
  * --------------------------------------------------------------------------- */
@@ -243,6 +248,10 @@ void kernel_main(multiboot_info_t *multiboot_info)
      * After this point, execution continues via scheduled tasks.
      */
     early_console_print("[SCHED] Entering scheduler...\n");
+    
+    /* Initialize HUD Status Bar */
+    vga_update_status_bar(" NexaKernel HUD [RUNNING]", "CPU: OK | MEM: OK ");
+    
     scheduler_start();
 
     /*
@@ -255,14 +264,44 @@ void kernel_main(multiboot_info_t *multiboot_info)
     while (1) {
         /* Check for keyboard input */
         if (keyboard_has_input()) {
-            char c = keyboard_getchar();
-            if (c != 0) {
-                early_console_print("Key: '");
-                char str[2] = {c, '\0'};
-                early_console_print(str);
-                early_console_print("' (");
-                early_console_print_dec((uint32_t)(uint8_t)c);
-                early_console_print(")\n");
+            uint16_t key = keyboard_get_key();
+            
+            if (key & KEY_SPECIAL_FLAG) {
+                /* Handle Special Keys (Scrolling, etc.) */
+                switch (key) {
+                    case KEY_UP:
+                        vga_scroll_up();
+                        break;
+                    case KEY_DOWN:
+                        vga_scroll_down();
+                        break;
+                    case KEY_PAGE_UP:
+                        /* Scroll 5 lines for PageUp */
+                        for(int i=0; i<5; i++) vga_scroll_up();
+                        break;
+                    case KEY_PAGE_DOWN:
+                        /* Scroll 5 lines for PageDown */
+                        for(int i=0; i<5; i++) vga_scroll_down();
+                        break;
+                    case KEY_HOME:
+                        /* Create a vga_scroll_to_top logic or just lots of page ups? 
+                           For now, ignore or implement later. */
+                        break;
+                    default:
+                        /* Ignore other special keys */
+                        break;
+                }
+            } else {
+                /* Regular ASCII */
+                char c = (char)key;
+                if (c != 0) {
+                    early_console_print("Key: '");
+                    char str[2] = {c, '\0'};
+                    early_console_print(str);
+                    early_console_print("' (");
+                    early_console_print_dec((uint32_t)(uint8_t)c);
+                    early_console_print(")\n");
+                }
             }
         }
 
@@ -270,9 +309,22 @@ void kernel_main(multiboot_info_t *multiboot_info)
         uint32_t ticks = pit_get_ticks();
         if (ticks - last_ticks >= SCHEDULER_TICK_HZ) {
             last_ticks = ticks;
-            early_console_print("[");
-            early_console_print_dec(pit_get_uptime_sec());
-            early_console_print("s] System running...\n");
+            
+            /* Update Status Bar */
+            uint32_t uptime = pit_get_uptime_sec();
+            char left_status[64];
+            // Simple manual string construction since we don't have sprintf yet
+            // " NexaKernel H.U.D [UPTIME: 123s]"
+            
+            /* Log heartbeat to bottom view */
+            vga_log_msg("System Heartbeat... OK");
+            
+            /* Visual indication of life */
+            if (uptime % 2 == 0) {
+                 vga_update_status_bar(" NexaKernel HUD [ACTIVE] ", "SYSTEM: STABLE");
+            } else {
+                 vga_update_status_bar(" NexaKernel HUD [ACTIVE].", "SYSTEM: STABLE");
+            }
         }
 
         /* Small delay to prevent busy-waiting too aggressively */

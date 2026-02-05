@@ -475,6 +475,45 @@ static void cmd_uptime(int argc, char **argv)
     println("");
 }
 
+/* crash - Trigger a page fault */
+static void cmd_crash(int argc, char **argv)
+{
+    (void)argc;
+    (void)argv;
+    
+    println("Triggering Page Fault for GDB Demo in 3 seconds...");
+    println("3...");
+    /* primitive spin wait */
+    for(volatile int i=0; i<50000000; i++);
+    println("2...");
+    for(volatile int i=0; i<50000000; i++);
+    println("1...");
+    for(volatile int i=0; i<50000000; i++);
+    println("CRASHING NOW!");
+    
+    /* Dereference NULL pointer to trigger Page Fault */
+    int *bad_ptr = (int*)0x0;
+    *bad_ptr = 42;
+}
+
+/* matrix - Enter the Matrix */
+static void cmd_matrix(int argc, char **argv)
+{
+    (void)argc;
+    (void)argv;
+    
+    println("Wake up, Neo...");
+    println("The Matrix has you...");
+    println("(Press RESET to exit)");
+    
+    /* Infinite loop of digital rain (mockup) */
+    while(1) {
+       /* Just print random binary for now */
+       print("0 1 0 1 1 0 0 1 0 1 0 1 0 0 1 0 1 1 0 1 0 1\n");
+       for(volatile int i=0; i<1000000; i++);
+    }
+}
+
 /* exit - Exit the shell */
 static void cmd_exit(int argc, char **argv)
 {
@@ -507,6 +546,8 @@ static const command_t commands[] = {
     { "whoami",  cmd_whoami,  "Print current user" },
     { "version", cmd_version, "Display kernel version" },
     { "uptime",  cmd_uptime,  "Display system uptime" },
+    { "crash",   cmd_crash,   "Trigger a kernel panic (Page Fault)" },
+    { "matrix",  cmd_matrix,  "Enter the Matrix" },
     { "exit",    cmd_exit,    "Exit the shell" },
     { NULL, NULL, NULL }  /* Sentinel */
 };

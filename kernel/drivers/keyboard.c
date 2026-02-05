@@ -150,11 +150,11 @@ static bool extended_key = false;
 /* ---------------------------------------------------------------------------
  * Keyboard Buffer (Circular Buffer)
  * ---------------------------------------------------------------------------
- * Simple ring buffer for storing characters until they're read.
+ * Simple ring buffer for storing characters/keys until they're read.
  * --------------------------------------------------------------------------- */
 #define KB_BUFFER_SIZE  KEYBOARD_BUFFER_SIZE
 
-static char kb_buffer[KB_BUFFER_SIZE];
+static uint16_t kb_buffer[KB_BUFFER_SIZE];
 static volatile uint32_t kb_head = 0;   /* Write position */
 static volatile uint32_t kb_tail = 0;   /* Read position */
 
@@ -177,8 +177,8 @@ static bool kb_buffer_empty(void)
     return kb_head == kb_tail;
 }
 
-/* Add a character to the buffer */
-static void kb_buffer_put(char c)
+/* Add a key to the buffer */
+static void kb_buffer_put(uint16_t c)
 {
     if (!kb_buffer_full()) {
         kb_buffer[kb_head] = c;
@@ -186,14 +186,14 @@ static void kb_buffer_put(char c)
     }
 }
 
-/* Get a character from the buffer */
-static char kb_buffer_get(void)
+/* Get a key from the buffer */
+static uint16_t kb_buffer_get(void)
 {
     if (kb_buffer_empty()) {
         return 0;
     }
     
-    char c = kb_buffer[kb_tail];
+    uint16_t c = kb_buffer[kb_tail];
     kb_tail = (kb_tail + 1) % KB_BUFFER_SIZE;
     return c;
 }
@@ -324,37 +324,77 @@ static void process_scancode(uint8_t scancode)
 
     /* Only process key presses for character input */
     if (!released && key < 128) {
-        char c;
+        uint16_t key_code = 0;
+        char c = 0;
         
-        /* Determine if we should use shifted mapping */
-        bool use_shift = shift_pressed;
-        
-        /* Caps Lock affects letter keys */
-        if (caps_lock) {
-            char base = scancode_to_ascii[key];
-            if (base >= 'a' && base <= 'z') {
-                use_shift = !use_shift;  /* Toggle shift for letters */
+        /* Handle Extended Keys (Arrays, Insert, Delete, Home, End, PageUp/Dn) */
+        if (extended_key) {
+            /* Map known extended keys to KEY_* constants */
+            switch (key) {
+                case 0x48: key_code = KEY_UP; break;
+                case 0x50: key_code = KEY_DOWN; break;
+                case 0x4B: key_code = KEY_LEFT; break;
+                case 0x4D: key_code = KEY_RIGHT; break;
+                case 0x47: key_code = KEY_HOME; break;
+                case 0x4F: key_code = KEY_END; break;
+                case 0x49: key_code = KEY_PAGE_UP; break;
+                case 0x51: key_code = KEY_PAGE_DOWN; break;
+                case 0x52: key_code = KEY_INSERT; break;
+                case 0x53: key_code = KEY_DELETE; break;
+                case 0x1C: c = '\n'; break; /* Keypad Enter */
+                case 0x35: c = '/'; break;  /* Keypad / */
+                default: 
+                    /* Unknown extended key - ignore or treat as normal? */
+                    /* If we map to ASCII, we might get '8' for Up arrow. */
+                    /* So better to safely ignore or pass through if we knew better. */
+                    break;
+            }
+        } 
+        else {
+            /* Normal Keys */
+            
+            /* Check for F-keys and others that don't have ASCII */
+            if ((key >= 0x3B && key <= 0x44) || /* F1-F10 */
+                 key == 0x57 || key == 0x58 ||  /* F11, F12 */
+                 key == 0x45 || key == 0x46)    /* NumLock, ScrollLock */
+            {
+                key_code = KEY_SPECIAL_FLAG | key;
+            }
+            else {
+                /* Standard ASCII mapping */
+                
+                /* Determine if we should use shifted mapping */
+                bool use_shift = shift_pressed;
+                
+                /* Caps Lock affects letter keys */
+                if (caps_lock) {
+                    char base = scancode_to_ascii[key];
+                    if (base >= 'a' && base <= 'z') {
+                        use_shift = !use_shift;  /* Toggle shift for letters */
+                    }
+                }
+                
+                /* Get ASCII character */
+                if (use_shift) {
+                    c = scancode_to_ascii_shifted[key];
+                } else {
+                    c = scancode_to_ascii[key];
+                }
+                
+                /* Handle Ctrl combinations */
+                if (ctrl_pressed && c >= 'a' && c <= 'z') {
+                    c = c - 'a' + 1;  /* Ctrl+A = 1, Ctrl+B = 2, etc. */
+                }
             }
         }
         
-        /* Get ASCII character */
-        if (use_shift) {
-            c = scancode_to_ascii_shifted[key];
-        } else {
-            c = scancode_to_ascii[key];
-        }
-        
-        event.ascii = (uint8_t)c;
-
-        /* Handle Ctrl combinations */
-        if (ctrl_pressed && c >= 'a' && c <= 'z') {
-            c = c - 'a' + 1;  /* Ctrl+A = 1, Ctrl+B = 2, etc. */
+        /* Put into buffer */
+        if (key_code != 0) {
+            kb_buffer_put(key_code);
+            event.ascii = 0; /* No ascii for special keys */
+        } else if (c != 0) {
+            kb_buffer_put((uint16_t)c);
             event.ascii = (uint8_t)c;
-        }
-
-        /* Add to buffer if it's a printable character or control character */
-        if (c != 0) {
-            kb_buffer_put(c);
         }
     }
 
@@ -434,6 +474,17 @@ void keyboard_init(void)
  * --------------------------------------------------------------------------- */
 char keyboard_getchar(void)
 {
+    uint16_t k = kb_buffer_get();
+    /* If special key, we might return 0 or cast it. 
+       Usually consumers of getchar() expect ASCII. 
+       We filter out special keys here to avoid garbage. */
+    if (k & KEY_SPECIAL_FLAG) {
+        return 0; 
+    }
+    return (char)k;
+}
+
+uint16_t keyboard_get_key(void) {
     return kb_buffer_get();
 }
 
@@ -447,11 +498,22 @@ char keyboard_getchar(void)
  * --------------------------------------------------------------------------- */
 char keyboard_getchar_blocking(void)
 {
-    while (kb_buffer_empty()) {
-        /* Hint to CPU that we're in a spin loop */
-        __asm__ volatile("pause");
+    while (1) {
+        /* Wait for input */
+        while (kb_buffer_empty()) {
+            /* Hint to CPU that we're in a spin loop */
+            __asm__ volatile("pause");
+        }
+        
+        uint16_t k = kb_buffer_get();
+        
+        /* If special key, ignore and continue waiting */
+        if (k & KEY_SPECIAL_FLAG) {
+            continue; 
+        }
+        
+        return (char)k;
     }
-    return kb_buffer_get();
 }
 
 /* ---------------------------------------------------------------------------

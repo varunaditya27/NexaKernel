@@ -161,6 +161,16 @@ void vga_enable_cursor(bool enable);
 void vga_scroll(void);
 
 /*
+ * vga_scroll_up - Scroll the view up (history)
+ */
+void vga_scroll_up(void);
+
+/*
+ * vga_scroll_down - Scroll the view down (history)
+ */
+void vga_scroll_down(void);
+
+/*
  * vga_print_hex - Print a 32-bit value in hexadecimal
  * ---------------------------------------------------------------------------
  * Parameters:
@@ -285,6 +295,9 @@ typedef struct key_event {
 /* ---------------------------------------------------------------------------
  * Special Key Codes (for non-ASCII keys)
  * --------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------------
+ * Special Key Codes (for non-ASCII keys)
+ * --------------------------------------------------------------------------- */
 #define KEY_ESCAPE      0x01
 #define KEY_BACKSPACE   0x0E
 #define KEY_TAB         0x0F
@@ -295,30 +308,34 @@ typedef struct key_event {
 #define KEY_ALT         0x38
 #define KEY_SPACE       0x39
 #define KEY_CAPS_LOCK   0x3A
-#define KEY_F1          0x3B
-#define KEY_F2          0x3C
-#define KEY_F3          0x3D
-#define KEY_F4          0x3E
-#define KEY_F5          0x3F
-#define KEY_F6          0x40
-#define KEY_F7          0x41
-#define KEY_F8          0x42
-#define KEY_F9          0x43
-#define KEY_F10         0x44
-#define KEY_NUM_LOCK    0x45
-#define KEY_SCROLL_LOCK 0x46
-#define KEY_HOME        0x47
-#define KEY_UP          0x48
-#define KEY_PAGE_UP     0x49
-#define KEY_LEFT        0x4B
-#define KEY_RIGHT       0x4D
-#define KEY_END         0x4F
-#define KEY_DOWN        0x50
-#define KEY_PAGE_DOWN   0x51
-#define KEY_INSERT      0x52
-#define KEY_DELETE      0x53
-#define KEY_F11         0x57
-#define KEY_F12         0x58
+
+/* Function Keys & Navigation (Mapped to > 255 to distinguish from ASCII) */
+#define KEY_SPECIAL_FLAG 0x100
+
+#define KEY_F1          (KEY_SPECIAL_FLAG | 0x3B)
+#define KEY_F2          (KEY_SPECIAL_FLAG | 0x3C)
+#define KEY_F3          (KEY_SPECIAL_FLAG | 0x3D)
+#define KEY_F4          (KEY_SPECIAL_FLAG | 0x3E)
+#define KEY_F5          (KEY_SPECIAL_FLAG | 0x3F)
+#define KEY_F6          (KEY_SPECIAL_FLAG | 0x40)
+#define KEY_F7          (KEY_SPECIAL_FLAG | 0x41)
+#define KEY_F8          (KEY_SPECIAL_FLAG | 0x42)
+#define KEY_F9          (KEY_SPECIAL_FLAG | 0x43)
+#define KEY_F10         (KEY_SPECIAL_FLAG | 0x44)
+#define KEY_NUM_LOCK    (KEY_SPECIAL_FLAG | 0x45)
+#define KEY_SCROLL_LOCK (KEY_SPECIAL_FLAG | 0x46)
+#define KEY_HOME        (KEY_SPECIAL_FLAG | 0x47)
+#define KEY_UP          (KEY_SPECIAL_FLAG | 0x48)
+#define KEY_PAGE_UP     (KEY_SPECIAL_FLAG | 0x49)
+#define KEY_LEFT        (KEY_SPECIAL_FLAG | 0x4B)
+#define KEY_RIGHT       (KEY_SPECIAL_FLAG | 0x4D)
+#define KEY_END         (KEY_SPECIAL_FLAG | 0x4F)
+#define KEY_DOWN        (KEY_SPECIAL_FLAG | 0x50)
+#define KEY_PAGE_DOWN   (KEY_SPECIAL_FLAG | 0x51)
+#define KEY_INSERT      (KEY_SPECIAL_FLAG | 0x52)
+#define KEY_DELETE      (KEY_SPECIAL_FLAG | 0x53)
+#define KEY_F11         (KEY_SPECIAL_FLAG | 0x57)
+#define KEY_F12         (KEY_SPECIAL_FLAG | 0x58)
 
 /* ---------------------------------------------------------------------------
  * Keyboard Driver Functions
@@ -335,11 +352,20 @@ void keyboard_init(void);
  * keyboard_getchar - Get a character from the keyboard buffer
  * ---------------------------------------------------------------------------
  * Returns:
- *   ASCII character from the buffer, or 0 if buffer is empty
+ *   Character/Key from the buffer (cast to char for ASCII, use keyboard_get_key for full)
+ *   0 if buffer is empty
  *
  * This is a non-blocking call.
  */
 char keyboard_getchar(void);
+
+/*
+ * keyboard_get_key - Get a raw key code from the buffer
+ * ---------------------------------------------------------------------------
+ * Returns:
+ *   Key code (uint16_t) or 0 if empty.
+ */
+uint16_t keyboard_get_key(void);
 
 /*
  * keyboard_getchar_blocking - Wait for and get a character
