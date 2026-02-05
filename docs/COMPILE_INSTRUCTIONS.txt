@@ -1,0 +1,144 @@
+================================================================
+NEXAKERNEL PROJECT REPORT - COMPILATION INSTRUCTIONS
+================================================================
+
+FILE: NexaKernel_OS_Project_Report.tex
+SIZE: 67 KB, 1,663 lines
+EXPECTED OUTPUT: 25-30 page PDF document
+
+================================================================
+QUICK START
+================================================================
+
+1. Install LaTeX distribution:
+   
+   Ubuntu/Debian:
+   $ sudo apt install texlive-full
+
+   Fedora:
+   $ sudo dnf install texlive-scheme-full
+
+   macOS (with Homebrew):
+   $ brew install --cask mactex
+
+   Windows:
+   Download and install MiKTeX from miktex.org
+
+2. Compile the document:
+   
+   $ cd docs
+   $ pdflatex NexaKernel_OS_Project_Report.tex
+   $ pdflatex NexaKernel_OS_Project_Report.tex
+   
+   (Run twice to generate table of contents)
+
+3. View the PDF:
+   
+   Output file: NexaKernel_OS_Project_Report.pdf
+
+================================================================
+REQUIRED PACKAGES
+================================================================
+
+The following LaTeX packages are required (included in full distributions):
+
+Core:
+- geometry (page layout)
+- graphicx (image inclusion)
+- tikz (flowcharts and diagrams)
+- pgfplots (plotting)
+
+Formatting:
+- listings (code syntax highlighting)
+- xcolor (color definitions)
+- fancyhdr (headers/footers)
+- titlesec (section formatting)
+- tocloft (table of contents formatting)
+- hyperref (hyperlinks)
+
+Tables:
+- booktabs (professional tables)
+- tabularx (flexible tables)
+- multirow (merged table cells)
+
+Lists & Floats:
+- enumitem (customizable lists)
+- float (float positioning)
+- caption (captions)
+- subcaption (subfigures)
+
+Math & Algorithms:
+- amsmath (math formatting)
+- amssymb (math symbols)
+- algorithm (algorithm environment)
+- algpseudocode (pseudocode)
+
+================================================================
+TROUBLESHOOTING
+================================================================
+
+Problem: "File Infographic.png not found"
+Solution: Ensure Infographic.png exists in docs/ directory
+          Or comment out line 164 if image not needed
+
+Problem: Missing packages
+Solution: Install texlive-full or use package manager:
+          $ tlmgr install <package-name>
+
+Problem: Compilation errors
+Solution: Check LaTeX log file for specific errors
+          Ensure all required packages are installed
+          Verify no special characters in file paths
+
+Problem: Figures/tables not appearing
+Solution: Run pdflatex twice (first pass for references)
+
+================================================================
+ALTERNATIVE COMPILATION METHODS
+================================================================
+
+Using latexmk (recommended for automatic reruns):
+$ latexmk -pdf NexaKernel_OS_Project_Report.tex
+
+Using XeLaTeX (if Unicode issues):
+$ xelatex NexaKernel_OS_Project_Report.tex
+
+Online (Overleaf):
+1. Create new project
+2. Upload NexaKernel_OS_Project_Report.tex
+3. Upload Infographic.png
+4. Click Recompile
+
+================================================================
+OUTPUT FILES
+================================================================
+
+After successful compilation:
+- NexaKernel_OS_Project_Report.pdf (main output)
+- NexaKernel_OS_Project_Report.aux (auxiliary)
+- NexaKernel_OS_Project_Report.log (compilation log)
+- NexaKernel_OS_Project_Report.toc (table of contents)
+- NexaKernel_OS_Project_Report.lof (list of figures)
+- NexaKernel_OS_Project_Report.lot (list of tables)
+- NexaKernel_OS_Project_Report.out (hyperref data)
+
+================================================================
+CUSTOMIZATION
+================================================================
+
+To modify:
+- Colors: Edit lines 51-56 (color definitions)
+- Page margins: Edit lines 39-45 (geometry settings)
+- Code style: Edit lines 110-132 (listings style)
+- Section formatting: Edit lines 94-105 (titlesec)
+
+================================================================
+CONTACT & SUPPORT
+================================================================
+
+For issues with NexaKernel report:
+- Check REPORT_README.md for detailed documentation
+- Review LaTeX log file for error messages
+- Ensure all package dependencies are met
+
+================================================================
