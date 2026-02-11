@@ -78,8 +78,6 @@ static void scheduler_test(void);
 /* HUD Functions (from vga_text.c) */
 extern void vga_update_status_bar(const char *left, const char *right);
 extern void vga_log_msg(const char *msg);
-extern void vga_activate_hud(void);
-extern void vga_scroll_to_bottom(void);
 
 
 /* ---------------------------------------------------------------------------
@@ -96,7 +94,6 @@ extern void vga_scroll_to_bottom(void);
 static unsigned short *vga_buffer = (unsigned short *)VGA_BUFFER;
 static int vga_row = 0;
 static int vga_col = 0;
-static bool vga_driver_ready = false;  /* Set after vga_init() completes */
 
 /* ---------------------------------------------------------------------------
  * BSS Section Symbols (from linker script)
@@ -131,18 +128,18 @@ void kernel_main(multiboot_info_t *multiboot_info)
 
     /* Print welcome banner */
     early_console_print("\n");
-    early_console_print("+============================================================+\n");
-    early_console_print("|       _   _                _  __                   _       |\n");
-    early_console_print("|      | \\ | | _____  ____ _| |/ /___ _ __ _ __   ___| |     |\n");
-    early_console_print("|      |  \\| |/ _ \\ \\/ / _` | ' // _ \\ '__| '_ \\ / _ \\ |     |\n");
-    early_console_print("|      | |\\  |  __/>  < (_| | . \\  __/ |  | | | |  __/ |     |\n");
-    early_console_print("|      |_| \\_|\\___/_/\\_\\__,_|_|\\_\\___|_|  |_| |_|\\___|_|     |\n");
-    early_console_print("|                                                            |\n");
-    early_console_print("|            Educational x86 Operating System Kernel         |\n");
-    early_console_print("|                       Version ");
+    early_console_print("+========================================================+\n");
+    early_console_print("|     _   _                _  __                   _     |\n");
+    early_console_print("|    | \\ | | _____  ____ _| |/ /___ _ __ _ __   ___| |   |\n");
+    early_console_print("|    |  \\| |/ _ \\ \\/ / _` | ' // _ \\ '__| '_ \\ / _ \\ |   |\n");
+    early_console_print("|    | |\\  |  __/>  < (_| | . \\  __/ |  | | | |  __/ |   |\n");
+    early_console_print("|    |_| \\_|\\___/_/\\_\\__,_|_|\\_\\___|_|  |_| |_|\\___|_|   |\n");
+    early_console_print("|                                                        |\n");
+    early_console_print("|          Educational x86 Operating System Kernel       |\n");
+    early_console_print("|                     Version ");
     early_console_print(NEXAKERNEL_VERSION_STRING);
-    early_console_print("                        |\n");
-    early_console_print("+============================================================+\n\n");
+    early_console_print("                      |\n");
+    early_console_print("+========================================================+\n\n");
 
     /* Display boot information */
     early_console_print("[BOOT] Kernel loaded at: 0x");
@@ -182,64 +179,64 @@ void kernel_main(multiboot_info_t *multiboot_info)
     /* -----------------------------------------------------------------------
      * Phase 1: Memory Management Initialization
      * ----------------------------------------------------------------------- */
-    early_console_print("\n+---------------- PHASE 1: MEMORY MANAGEMENT ----------------+\n");
-    early_console_print("|  Initializing physical frame allocator and kernel heap     |\n");
-    early_console_print("+------------------------------------------------------------+\n");
+    early_console_print("\n+--------------- PHASE 1: MEMORY MANAGEMENT ---------------+\n");
+    early_console_print("|  Initializing physical frame allocator and kernel heap   |\n");
+    early_console_print("+----------------------------------------------------------+\n");
     init_memory(multiboot_info);
 
     /* -----------------------------------------------------------------------
      * Phase 2: Interrupt Handling
      * ----------------------------------------------------------------------- */
-    early_console_print("\n+-------------- PHASE 2: INTERRUPT HANDLING -----------------+\n");
-    early_console_print("| Setting up IDT, ISR handlers, IRQ handlers, and PIC        |\n");
-    early_console_print("+------------------------------------------------------------+\n");
+    early_console_print("\n+------------- PHASE 2: INTERRUPT HANDLING ----------------+\n");
+    early_console_print("| Setting up IDT, ISR handlers, IRQ handlers, and PIC     |\n");
+    early_console_print("+----------------------------------------------------------+\n");
     init_interrupts();
 
     /* -----------------------------------------------------------------------
      * Phase 3: Device Drivers
      * ----------------------------------------------------------------------- */
-    early_console_print("\n+----------------- PHASE 3: DEVICE DRIVERS ------------------+\n");
-    early_console_print("| Initializing VGA, PIT Timer, and PS/2 Keyboard drivers     |\n");
-    early_console_print("+------------------------------------------------------------+\n");
+    early_console_print("\n+---------------- PHASE 3: DEVICE DRIVERS -----------------+\n");
+    early_console_print("| Initializing VGA, PIT Timer, and PS/2 Keyboard drivers  |\n");
+    early_console_print("+----------------------------------------------------------+\n");
     init_drivers();
 
     /* -----------------------------------------------------------------------
      * Phase 4: Scheduler
      * ----------------------------------------------------------------------- */
-    early_console_print("\n+---------------- PHASE 4: TASK SCHEDULER -------------------+\n");
-    early_console_print("| Initializing round-robin scheduler and creating tasks      |\n");
-    early_console_print("+------------------------------------------------------------+\n");
+    early_console_print("\n+--------------- PHASE 4: TASK SCHEDULER ------------------+\n");
+    early_console_print("| Initializing round-robin scheduler and creating tasks   |\n");
+    early_console_print("+----------------------------------------------------------+\n");
     init_scheduler_subsystem();
 
     /* -----------------------------------------------------------------------
      * Memory Test (optional - demonstrates working allocation)
      * ----------------------------------------------------------------------- */
-    early_console_print("\n+--------------- TEST: HEAP MEMORY ALLOCATOR ----------------+\n");
-    early_console_print("| Demonstrating kmalloc(), kfree(), kcalloc() operations     |\n");
-    early_console_print("+------------------------------------------------------------+\n");
+    early_console_print("\n+-------------- TEST: HEAP MEMORY ALLOCATOR ---------------+\n");
+    early_console_print("| Demonstrating kmalloc(), kfree(), kcalloc() operations   |\n");
+    early_console_print("+----------------------------------------------------------+\n");
     memory_test();
 
     /* -----------------------------------------------------------------------
      * Interrupt Test (demonstrates working interrupt handling)
      * ----------------------------------------------------------------------- */
-    early_console_print("\n+--------------- TEST: INTERRUPT SUBSYSTEM ------------------+\n");
-    early_console_print("| Verifying IDT, PIC remapping, and IRQ handlers             |\n");
-    early_console_print("+------------------------------------------------------------+\n");
+    early_console_print("\n+-------------- TEST: INTERRUPT SUBSYSTEM -----------------+\n");
+    early_console_print("| Verifying IDT, PIC remapping, and IRQ handlers          |\n");
+    early_console_print("+----------------------------------------------------------+\n");
     interrupt_test();
 
     /* -----------------------------------------------------------------------
      * Scheduler Test (demonstrates working multitasking)
      * ----------------------------------------------------------------------- */
-    early_console_print("\n+------------- TEST: MULTITASKING SCHEDULER -----------------+\n");
-    early_console_print("| Creating demo tasks to demonstrate context switching       |\n");
-    early_console_print("+------------------------------------------------------------+\n");
+    early_console_print("\n+------------ TEST: MULTITASKING SCHEDULER ----------------+\n");
+    early_console_print("| Creating demo tasks to demonstrate context switching     |\n");
+    early_console_print("+----------------------------------------------------------+\n");
     scheduler_test();
 
-    early_console_print("\n+============================================================+\n");
-    early_console_print("|                BOOT SEQUENCE COMPLETE!                     |\n");
-    early_console_print("|  All kernel subsystems initialized successfully.           |\n");
-    early_console_print("|  Transferring control to the scheduler...                  |\n");
-    early_console_print("+============================================================+\n\n");
+    early_console_print("\n+========================================================+\n");
+    early_console_print("|              BOOT SEQUENCE COMPLETE!                   |\n");
+    early_console_print("|  All kernel subsystems initialized successfully.       |\n");
+    early_console_print("|  Transferring control to the scheduler...              |\n");
+    early_console_print("+========================================================+\n\n");
 
     /* Enable interrupts - the system is now fully operational */
     cpu_sti();
@@ -251,9 +248,6 @@ void kernel_main(multiboot_info_t *multiboot_info)
      * After this point, execution continues via scheduled tasks.
      */
     early_console_print("[SCHED] Entering scheduler...\n");
-    
-    /* Switch VGA to HUD mode: status bar + shell viewport + log area */
-    vga_activate_hud();
     
     /* Initialize HUD Status Bar */
     vga_update_status_bar(" NexaKernel HUD [RUNNING]", "CPU: OK | MEM: OK ");
@@ -290,7 +284,8 @@ void kernel_main(multiboot_info_t *multiboot_info)
                         for(int i=0; i<5; i++) vga_scroll_down();
                         break;
                     case KEY_HOME:
-                        vga_scroll_to_bottom();
+                        /* Create a vga_scroll_to_top logic or just lots of page ups? 
+                           For now, ignore or implement later. */
                         break;
                     default:
                         /* Ignore other special keys */
@@ -418,7 +413,7 @@ static void init_memory(multiboot_info_t *mb_info)
         early_console_print("        ^~~~~~~~~~~~~~~~~~~~~~~~^\n");
         early_console_print("        Kernel code/data (RESERVED)\n");
     } else {
-        early_console_print("  | Status:         FAILED                                   |\n");
+        early_console_print("  | Status:         FAILED                                  |\n");
         early_console_print("  +----------------------------------------------------------+\n");
         PANIC("Failed to initialize frame allocator");
     }
@@ -452,14 +447,14 @@ static void init_memory(multiboot_info_t *mb_info)
             early_console_print("  +----------------------------------------------------------+\n");
             
             early_console_print("\n  FREE LIST VISUALIZATION:\n");
-            early_console_print("  +------+---------------------------------------------------+\n");
-            early_console_print("  | HDR  |            SINGLE LARGE FREE BLOCK               |\n");
-            early_console_print("  | size |                   (16 MB)                        |\n");
-            early_console_print("  | free |                                                  |\n");
-            early_console_print("  | next |-> NULL                                           |\n");
-            early_console_print("  +------+---------------------------------------------------+\n");
+            early_console_print("  +------+--------------------------------------------------+\n");
+            early_console_print("  | HDR  |            SINGLE LARGE FREE BLOCK              |\n");
+            early_console_print("  | size |                   (16 MB)                       |\n");
+            early_console_print("  | free |                                                 |\n");
+            early_console_print("  | next |-> NULL                                          |\n");
+            early_console_print("  +------+--------------------------------------------------+\n");
         } else {
-            early_console_print("  | Status:         FAILED (heap_init)                       |\n");
+            early_console_print("  | Status:         FAILED (heap_init)                      |\n");
             early_console_print("  +----------------------------------------------------------+\n");
             PANIC("Failed to initialize kernel heap");
         }
@@ -471,23 +466,23 @@ static void init_memory(multiboot_info_t *mb_info)
 
     /* Print memory summary */
     early_console_print("\n  MEMORY SUMMARY:\n");
-    early_console_print("  +-------------------------------+--------------------------+\n");
-    early_console_print("  | Metric                        | Value                    |\n");
-    early_console_print("  +-------------------------------+--------------------------+\n");
+    early_console_print("  +-------------------------------+---------------------------+\n");
+    early_console_print("  | Metric                        | Value                     |\n");
+    early_console_print("  +-------------------------------+---------------------------+\n");
     early_console_print("  | Free Frames                   | ");
     uint32_t free_frames = frame_free_count();
     if (free_frames < 10000) early_console_print(" ");
     early_console_print_dec(free_frames);
-    early_console_print("                   |\n");
+    early_console_print("                    |\n");
     early_console_print("  | Free Physical Memory          | ");
     uint32_t free_mb = frame_free_memory() / (1024 * 1024);
     if (free_mb < 100) early_console_print(" ");
     early_console_print_dec(free_mb);
-    early_console_print(" MB                  |\n");
+    early_console_print(" MB                   |\n");
     early_console_print("  | Heap Available                | ");
     early_console_print_dec(heap_size / (1024 * 1024));
-    early_console_print(" MB (kmalloc ready)   |\n");
-    early_console_print("  +-------------------------------+--------------------------+\n");
+    early_console_print(" MB (kmalloc ready)    |\n");
+    early_console_print("  +-------------------------------+---------------------------+\n");
 }
 
 /* ---------------------------------------------------------------------------
@@ -507,19 +502,19 @@ static void init_interrupts(void)
      * Initialize Interrupt Descriptor Table
      * ----------------------------------------------------------------------- */
     idt_init();
-    early_console_print("  | Status: IDT initialized and loaded via LIDT              |\n");
+    early_console_print("  | Status: IDT initialized and loaded via LIDT             |\n");
     early_console_print("  +----------------------------------------------------------+\n");
     
     early_console_print("\n  IDT VECTOR ALLOCATION:\n");
-    early_console_print("  +----------+---------+-------------------------------------+\n");
-    early_console_print("  | Vectors  | Type    | Description                         |\n");
-    early_console_print("  +----------+---------+-------------------------------------+\n");
-    early_console_print("  | 0-31     | ISR     | CPU Exceptions (Divide, GPF, etc.)  |\n");
-    early_console_print("  | 32-47    | IRQ     | Hardware Interrupts (Timer, Kbd)    |\n");
-    early_console_print("  | 48-127   | Reserved| Available for future use            |\n");
-    early_console_print("  | 128(0x80)| Syscall | System call interface (INT 0x80)    |\n");
-    early_console_print("  | 129-255  | Reserved| Available for future use            |\n");
-    early_console_print("  +----------+---------+-------------------------------------+\n");
+    early_console_print("  +----------+---------+----------------------------------------+\n");
+    early_console_print("  | Vectors  | Type    | Description                            |\n");
+    early_console_print("  +----------+---------+----------------------------------------+\n");
+    early_console_print("  | 0-31     | ISR     | CPU Exceptions (Divide, GPF, PF, etc.) |\n");
+    early_console_print("  | 32-47    | IRQ     | Hardware Interrupts (Timer, Kbd, etc.) |\n");
+    early_console_print("  | 48-127   | Reserved| Available for future use               |\n");
+    early_console_print("  | 128(0x80)| Syscall | System call interface (INT 0x80)       |\n");
+    early_console_print("  | 129-255  | Reserved| Available for future use               |\n");
+    early_console_print("  +----------+---------+----------------------------------------+\n");
 
     /* -----------------------------------------------------------------------
      * Initialize CPU Exception Handlers (ISR 0-31)
@@ -578,7 +573,6 @@ static void init_drivers(void)
     early_console_print("  | Resolution: 80 columns x 25 rows = 2000 characters       |\n");
     early_console_print("  +----------------------------------------------------------+\n");
     vga_init();
-    vga_driver_ready = true;  /* Route all output through VGA driver from now on */
     early_console_print("  | CHARACTER FORMAT (2 bytes per cell):                     |\n");
     early_console_print("  |   Byte 0: ASCII character code                           |\n");
     early_console_print("  |   Byte 1: Attribute (fg color | bg color << 4)           |\n");
@@ -606,16 +600,16 @@ static void init_drivers(void)
     early_console_print(" Hz                          |\n");
     early_console_print("  +----------------------------------------------------------+\n");
     early_console_print("\n  TIMER INTERRUPT FLOW:\n");
-    early_console_print("  +--------+     +-----+     +--------+     +------------+    \n");
-    early_console_print("  |  PIT   | --> | PIC | --> |  CPU   | --> | IRQ0       |    \n");
-    early_console_print("  | 100 Hz |     | IRQ0|     | INT 32 |     | Handler    |    \n");
-    early_console_print("  +--------+     +-----+     +--------+     +------------+    \n");
-    early_console_print("                                              |               \n");
-    early_console_print("                                              v               \n");
-    early_console_print("                                     +----------------+       \n");
-    early_console_print("                                     | scheduler tick |       \n");
-    early_console_print("                                     | (preemption)   |       \n");
-    early_console_print("                                     +----------------+       \n");
+    early_console_print("  +--------+     +-----+     +--------+     +------------+\n");
+    early_console_print("  |  PIT   | --> | PIC | --> |  CPU   | --> | IRQ0       |\n");
+    early_console_print("  | 100 Hz |     | IRQ0|     | INT 32 |     | Handler    |\n");
+    early_console_print("  +--------+     +-----+     +--------+     +------------+\n");
+    early_console_print("                                              |\n");
+    early_console_print("                                              v\n");
+    early_console_print("                                     +----------------+\n");
+    early_console_print("                                     | scheduler tick |\n");
+    early_console_print("                                     | (preemption)   |\n");
+    early_console_print("                                     +----------------+\n");
 
     /* -----------------------------------------------------------------------
      * Initialize PS/2 Keyboard Driver
@@ -635,17 +629,17 @@ static void init_drivers(void)
     early_console_print("  | Status: INITIALIZED                                      |\n");
     early_console_print("  +----------------------------------------------------------+\n");
     early_console_print("\n  KEYBOARD INTERRUPT FLOW:\n");
-    early_console_print("  +-------+     +---------+     +-----+     +--------+        \n");
-    early_console_print("  | KEY   | --> |  8042   | --> | PIC | --> |  CPU   |        \n");
-    early_console_print("  | PRESS |     | scancode|     | IRQ1|     | INT 33 |        \n");
-    early_console_print("  +-------+     +---------+     +-----+     +--------+        \n");
-    early_console_print("                                              |               \n");
-    early_console_print("                                              v               \n");
-    early_console_print("                                     +----------------+       \n");
-    early_console_print("                                     | kbd_handler:   |       \n");
-    early_console_print("                                     | read 0x60      |       \n");
-    early_console_print("                                     | translate->buf |       \n");
-    early_console_print("                                     +----------------+       \n");
+    early_console_print("  +-------+     +---------+     +-----+     +--------+\n");
+    early_console_print("  | KEY   | --> |  8042   | --> | PIC | --> |  CPU   |\n");
+    early_console_print("  | PRESS |     | scancode|     | IRQ1|     | INT 33 |\n");
+    early_console_print("  +-------+     +---------+     +-----+     +--------+\n");
+    early_console_print("                                              |\n");
+    early_console_print("                                              v\n");
+    early_console_print("                                     +----------------+\n");
+    early_console_print("                                     | kbd_handler:   |\n");
+    early_console_print("                                     | read 0x60      |\n");
+    early_console_print("                                     | translate->buf |\n");
+    early_console_print("                                     +----------------+\n");
 }
 
 /* ---------------------------------------------------------------------------
@@ -662,9 +656,9 @@ static void demo_task_a(void *arg)
     int count = 0;
     
     early_console_print("\n");
-    early_console_print("  +--- TASK A STARTED (Producer) ----------------------------+\n");
-    early_console_print("  | PID: 2 | Priority: 3 (NORMAL) | State: RUNNING           |\n");
-    early_console_print("  | Role: Simulates a data-producing thread                  |\n");
+    early_console_print("  +--- TASK A STARTED (Producer) ---------------------------+\n");
+    early_console_print("  | PID: 2 | Priority: 3 (NORMAL) | State: RUNNING          |\n");
+    early_console_print("  | Role: Simulates a data-producing thread                 |\n");
     early_console_print("  +----------------------------------------------------------+\n");
     
     while (count < 5) {
@@ -695,9 +689,9 @@ static void demo_task_b(void *arg)
     int count = 0;
     
     early_console_print("\n");
-    early_console_print("  +--- TASK B STARTED (Consumer) ----------------------------+\n");
-    early_console_print("  | PID: 3 | Priority: 3 (NORMAL) | State: RUNNING           |\n");
-    early_console_print("  | Role: Simulates a data-consuming thread                  |\n");
+    early_console_print("  +--- TASK B STARTED (Consumer) ---------------------------+\n");
+    early_console_print("  | PID: 3 | Priority: 3 (NORMAL) | State: RUNNING          |\n");
+    early_console_print("  | Role: Simulates a data-consuming thread                 |\n");
     early_console_print("  +----------------------------------------------------------+\n");
     
     while (count < 5) {
@@ -726,9 +720,9 @@ static void demo_task_c(void *arg)
     UNUSED(arg);
     
     early_console_print("\n");
-    early_console_print("  +*** TASK C STARTED (HIGH PRIORITY) ***********************+\n");
-    early_console_print("  | PID: 4 | Priority: 1 (HIGH)   | State: RUNNING           |\n");
-    early_console_print("  | Role: Critical task - should run before lower priority   |\n");
+    early_console_print("  +*** TASK C STARTED (HIGH PRIORITY) **********************+\n");
+    early_console_print("  | PID: 4 | Priority: 1 (HIGH)   | State: RUNNING          |\n");
+    early_console_print("  | Role: Critical task - should run before lower priority  |\n");
     early_console_print("  +**********************************************************+\n");
     
     for (int i = 0; i < 3; i++) {
@@ -740,7 +734,7 @@ static void demo_task_c(void *arg)
     }
     
     early_console_print("  +**********************************************************+\n");
-    early_console_print("  | [C***] COMPLETED: High priority work done                |\n");
+    early_console_print("  | [C***] COMPLETED: High priority work done               |\n");
     early_console_print("  | State: RUNNING -> TERMINATED                             |\n");
     early_console_print("  +**********************************************************+\n");
 }
@@ -804,14 +798,14 @@ static void main_task_entry(void *arg)
                     early_console_print("|              SCHEDULER SUBSYSTEM STATISTICS                |\n");
                     early_console_print("+============================================================+\n");
                     early_console_print("|                                                            |\n");
-                    early_console_print("| SCHEDULING ALGORITHM: Round-Robin with Preemptive          |\n");
-                    early_console_print("|                       Time Slicing                         |\n");
+                    early_console_print("| SCHEDULING ALGORITHM: Round-Robin with Preemptive         |\n");
+                    early_console_print("|                       Time Slicing                        |\n");
                     early_console_print("|                                                            |\n");
-                    early_console_print("| DATA STRUCTURE: Circular Queue (FIFO)                      |\n");
+                    early_console_print("| DATA STRUCTURE: Circular Queue (FIFO)                     |\n");
                     early_console_print("|                                                            |\n");
                     early_console_print("+------------------------------------------------------------+\n");
-                    early_console_print("| METRIC                        | VALUE                      |\n");
-                    early_console_print("+-------------------------------+----------------------------+\n");
+                    early_console_print("| METRIC                        | VALUE                     |\n");
+                    early_console_print("+-------------------------------+---------------------------+\n");
                     early_console_print("| Context Switches              | ");
                     uint32_t cs = scheduler_get_context_switches();
                     if (cs < 10) early_console_print(" ");
@@ -842,13 +836,13 @@ static void main_task_entry(void *arg)
                     early_console_print("| Total Active Tasks            |     ");
                     early_console_print_dec(task_count());
                     early_console_print("                     |\n");
-                    early_console_print("| Timer Tick Rate               |   100 Hz                   |\n");
-                    early_console_print("| Time Slice Duration           |    10 ticks (100ms)        |\n");
-                    early_console_print("+-------------------------------+----------------------------+\n");
+                    early_console_print("| Timer Tick Rate               |   100 Hz                  |\n");
+                    early_console_print("| Time Slice Duration           |    10 ticks (100ms)       |\n");
+                    early_console_print("+-------------------------------+---------------------------+\n");
                     early_console_print("|                                                            |\n");
                     early_console_print("| CONTEXT SWITCH EXPLANATION:                                |\n");
-                    early_console_print("| Each switch saves/restores 8 registers (32 bytes)          |\n");
-                    early_console_print("| + Updates task->stack_pointer with current ESP             |\n");
+                    early_console_print("| Each switch saves/restores 8 registers (32 bytes)         |\n");
+                    early_console_print("| + Updates task->stack_pointer with current ESP            |\n");
                     early_console_print("|                                                            |\n");
                     early_console_print("+============================================================+\n\n");
                     
@@ -866,8 +860,8 @@ static void main_task_entry(void *arg)
                     early_console_print("|   - Vector 0x80:   System calls                            |\n");
                     early_console_print("|                                                            |\n");
                     early_console_print("+------------------------------------------------------------+\n");
-                    early_console_print("| IRQ | VECTOR | DEVICE         | COUNT       | RATE         |\n");
-                    early_console_print("+-----+--------+----------------+-------------+--------------+\n");
+                    early_console_print("| IRQ | VECTOR | DEVICE         | COUNT       | RATE        |\n");
+                    early_console_print("+-----+--------+----------------+-------------+-------------+\n");
                     uint32_t uptime = pit_get_uptime_sec();
                     if (uptime == 0) uptime = 1;
                     uint32_t irq0 = irq_get_count(0);
@@ -879,7 +873,7 @@ static void main_task_entry(void *arg)
                     if (irq0 < 10000) early_console_print(" ");
                     if (irq0 < 100000) early_console_print(" ");
                     early_console_print_dec(irq0);
-                    early_console_print("    | ~100/sec     |\n");
+                    early_console_print("    | ~100/sec    |\n");
                     early_console_print("|  1  |   33   | PS/2 Keyboard  | ");
                     if (irq1 < 10) early_console_print(" ");
                     if (irq1 < 100) early_console_print(" ");
@@ -887,8 +881,8 @@ static void main_task_entry(void *arg)
                     if (irq1 < 10000) early_console_print(" ");
                     if (irq1 < 100000) early_console_print(" ");
                     early_console_print_dec(irq1);
-                    early_console_print("    | on keypress  |\n");
-                    early_console_print("+-----+--------+----------------+-------------+--------------+\n");
+                    early_console_print("    | on keypress |\n");
+                    early_console_print("+-----+--------+----------------+-------------+-------------+\n");
                     early_console_print("|                                                            |\n");
                     early_console_print("| TIMING:                                                    |\n");
                     early_console_print("|   System Uptime:     ");
@@ -932,51 +926,51 @@ static void main_task_entry(void *arg)
                     early_console_print("|                                                            |\n");
                     early_console_print("+------------------------------------------------------------+\n");
                     early_console_print("| FRAME ALLOCATOR (Bitmap-based, 4KB pages)                  |\n");
-                    early_console_print("+-------------------------------+----------------------------+\n");
+                    early_console_print("+-------------------------------+---------------------------+\n");
                     early_console_print("| Total Physical Frames         | ");
                     uint32_t tf = frame_total_count();
                     if (tf < 10000) early_console_print(" ");
                     early_console_print_dec(tf);
-                    early_console_print("                     |\n");
+                    early_console_print("                    |\n");
                     early_console_print("| Used Frames                   | ");
                     uint32_t uf = frame_used_count();
                     if (uf < 10000) early_console_print(" ");
                     early_console_print_dec(uf);
-                    early_console_print("                     |\n");
+                    early_console_print("                    |\n");
                     early_console_print("| Free Frames                   | ");
                     uint32_t ff = frame_free_count();
                     if (ff < 10000) early_console_print(" ");
                     early_console_print_dec(ff);
-                    early_console_print("                     |\n");
+                    early_console_print("                    |\n");
                     early_console_print("| Free Memory                   | ");
                     uint32_t fm = frame_free_memory() / (1024 * 1024);
                     if (fm < 100) early_console_print(" ");
                     early_console_print_dec(fm);
-                    early_console_print(" MB                    |\n");
-                    early_console_print("+-------------------------------+----------------------------+\n");
+                    early_console_print(" MB                   |\n");
+                    early_console_print("+-------------------------------+---------------------------+\n");
                     early_console_print("| HEAP ALLOCATOR (Free-list, first-fit)                      |\n");
-                    early_console_print("+-------------------------------+----------------------------+\n");
+                    early_console_print("+-------------------------------+---------------------------+\n");
                     early_console_print("| Total Allocations (kmalloc)   | ");
                     uint32_t ha = heap_allocation_count();
                     if (ha < 10000) early_console_print(" ");
                     early_console_print_dec(ha);
-                    early_console_print("                     |\n");
+                    early_console_print("                    |\n");
                     early_console_print("| Total Frees (kfree)           | ");
                     uint32_t hf = heap_free_count();
                     if (hf < 10000) early_console_print(" ");
                     early_console_print_dec(hf);
-                    early_console_print("                     |\n");
+                    early_console_print("                    |\n");
                     early_console_print("| Active Allocations            | ");
                     uint32_t active = ha - hf;
                     if (active < 10000) early_console_print(" ");
                     early_console_print_dec(active);
-                    early_console_print("                     |\n");
-                    early_console_print("+-------------------------------+----------------------------+\n");
+                    early_console_print("                    |\n");
+                    early_console_print("+-------------------------------+---------------------------+\n");
                     early_console_print("|                                                            |\n");
                     early_console_print("| KEY ALGORITHMS:                                            |\n");
-                    early_console_print("|   Frame Alloc: Bitmap scan for first 0-bit (first-fit)     |\n");
-                    early_console_print("|   Heap Alloc:  Free-list walk, split large blocks          |\n");
-                    early_console_print("|   Heap Free:   Return to list, coalesce adjacent blocks    |\n");
+                    early_console_print("|   Frame Alloc: Bitmap scan for first 0-bit (first-fit)    |\n");
+                    early_console_print("|   Heap Alloc:  Free-list walk, split large blocks         |\n");
+                    early_console_print("|   Heap Free:   Return to list, coalesce adjacent blocks   |\n");
                     early_console_print("|                                                            |\n");
                     early_console_print("+============================================================+\n\n");
                     
@@ -993,15 +987,15 @@ static void main_task_entry(void *arg)
                     early_console_print("|   BLOCKED  - Waiting for I/O or event                      |\n");
                     early_console_print("|   SLEEPING - Voluntarily sleeping (timer-based)            |\n");
                     early_console_print("|                                                            |\n");
-                    early_console_print("+-----+------------+----------+----------+-------------------+\n");
-                    early_console_print("| PID | Name       | State    | Priority | Role              |\n");
-                    early_console_print("+-----+------------+----------+----------+-------------------+\n");
-                    early_console_print("|  0  | idle       | READY    |    7     | CPU idle loop     |\n");
-                    early_console_print("|  1  | main       | RUNNING  |    3     | Interactive shell |\n");
-                    early_console_print("|  2  | demo-A     | READY    |    3     | Producer task     |\n");
-                    early_console_print("|  3  | demo-B     | READY    |    3     | Consumer task     |\n");
-                    early_console_print("|  4  | demo-C     | READY    |    1     | High-priority     |\n");
-                    early_console_print("+-----+------------+----------+----------+-------------------+\n");
+                    early_console_print("+-----+------------+----------+----------+------------------+\n");
+                    early_console_print("| PID | Name       | State    | Priority | Role             |\n");
+                    early_console_print("+-----+------------+----------+----------+------------------+\n");
+                    early_console_print("|  0  | idle       | READY    |    7     | CPU idle loop    |\n");
+                    early_console_print("|  1  | main       | RUNNING  |    3     | Interactive shell|\n");
+                    early_console_print("|  2  | demo-A     | READY    |    3     | Producer task    |\n");
+                    early_console_print("|  3  | demo-B     | READY    |    3     | Consumer task    |\n");
+                    early_console_print("|  4  | demo-C     | READY    |    1     | High-priority    |\n");
+                    early_console_print("+-----+------------+----------+----------+------------------+\n");
                     early_console_print("|                                                            |\n");
                     early_console_print("| PRIORITY LEVELS (0=highest, 7=lowest):                     |\n");
                     early_console_print("|   0-1: HIGH     - Critical system tasks                    |\n");
@@ -1021,34 +1015,34 @@ static void main_task_entry(void *arg)
                     early_console_print("|           DATA STRUCTURES USED IN NEXAKERNEL               |\n");
                     early_console_print("+============================================================+\n");
                     early_console_print("|                                                            |\n");
-                    early_console_print("| 1. BITMAP (kernel/memory/dsa_structures/bitmap.c)          |\n");
-                    early_console_print("|    Used by: Physical Frame Allocator                       |\n");
-                    early_console_print("|    Purpose: Track 4KB page allocation (1 bit per frame)    |\n");
-                    early_console_print("|    Ops: O(n) scan for alloc, O(1) for free                 |\n");
+                    early_console_print("| 1. BITMAP (kernel/memory/dsa_structures/bitmap.c)         |\n");
+                    early_console_print("|    Used by: Physical Frame Allocator                      |\n");
+                    early_console_print("|    Purpose: Track 4KB page allocation (1 bit per frame)   |\n");
+                    early_console_print("|    Ops: O(n) scan for alloc, O(1) for free                |\n");
                     early_console_print("|                                                            |\n");
-                    early_console_print("| 2. FREE LIST (kernel/memory/dsa_structures/freelist.c)     |\n");
-                    early_console_print("|    Used by: Kernel Heap Allocator                          |\n");
-                    early_console_print("|    Purpose: Manage variable-size memory blocks             |\n");
-                    early_console_print("|    Ops: O(n) first-fit alloc, O(1) free + coalescing       |\n");
+                    early_console_print("| 2. FREE LIST (kernel/memory/dsa_structures/freelist.c)    |\n");
+                    early_console_print("|    Used by: Kernel Heap Allocator                         |\n");
+                    early_console_print("|    Purpose: Manage variable-size memory blocks            |\n");
+                    early_console_print("|    Ops: O(n) first-fit alloc, O(1) free + coalescing      |\n");
                     early_console_print("|                                                            |\n");
-                    early_console_print("| 3. CIRCULAR QUEUE (scheduler/dsa_structures/)              |\n");
-                    early_console_print("|    Used by: Round-Robin Scheduler                          |\n");
-                    early_console_print("|    Purpose: FIFO task queue for fair scheduling            |\n");
-                    early_console_print("|    Ops: O(1) enqueue/dequeue                               |\n");
+                    early_console_print("| 3. CIRCULAR QUEUE (scheduler/dsa_structures/)             |\n");
+                    early_console_print("|    Used by: Round-Robin Scheduler                         |\n");
+                    early_console_print("|    Purpose: FIFO task queue for fair scheduling           |\n");
+                    early_console_print("|    Ops: O(1) enqueue/dequeue                              |\n");
                     early_console_print("|                                                            |\n");
-                    early_console_print("| 4. PRIORITY QUEUE/HEAP (lib/dsa/heap.c)                    |\n");
-                    early_console_print("|    Used by: Priority Scheduler (alternative)               |\n");
-                    early_console_print("|    Purpose: Always schedule highest-priority task          |\n");
-                    early_console_print("|    Ops: O(log n) insert/extract-min                        |\n");
+                    early_console_print("| 4. PRIORITY QUEUE/HEAP (lib/dsa/heap.c)                   |\n");
+                    early_console_print("|    Used by: Priority Scheduler (alternative)              |\n");
+                    early_console_print("|    Purpose: Always schedule highest-priority task         |\n");
+                    early_console_print("|    Ops: O(log n) insert/extract-min                       |\n");
                     early_console_print("|                                                            |\n");
-                    early_console_print("| 5. TRIE (kernel/fs/dsa_structures/trie.c)                  |\n");
-                    early_console_print("|    Used by: Filesystem path lookup                         |\n");
-                    early_console_print("|    Purpose: Fast prefix-based path resolution              |\n");
-                    early_console_print("|    Ops: O(k) lookup where k = path length                  |\n");
+                    early_console_print("| 5. TRIE (kernel/fs/dsa_structures/trie.c)                 |\n");
+                    early_console_print("|    Used by: Filesystem path lookup                        |\n");
+                    early_console_print("|    Purpose: Fast prefix-based path resolution             |\n");
+                    early_console_print("|    Ops: O(k) lookup where k = path length                 |\n");
                     early_console_print("|                                                            |\n");
-                    early_console_print("| 6. HASH MAP (kernel/fs/dsa_structures/hashmap.c)           |\n");
-                    early_console_print("|    Used by: Open file table, inode cache                   |\n");
-                    early_console_print("|    Purpose: O(1) average lookup for file descriptors       |\n");
+                    early_console_print("| 6. HASH MAP (kernel/fs/dsa_structures/hashmap.c)          |\n");
+                    early_console_print("|    Used by: Open file table, inode cache                  |\n");
+                    early_console_print("|    Purpose: O(1) average lookup for file descriptors      |\n");
                     early_console_print("|                                                            |\n");
                     early_console_print("+============================================================+\n\n");
                     
@@ -1302,13 +1296,13 @@ static void scheduler_test(void)
 
     /* Print ready task count */
     early_console_print("\n  SCHEDULER STATE:\n");
-    early_console_print("  +---------------------------+------------------------------+\n");
+    early_console_print("  +---------------------------+-----------------------------+\n");
     early_console_print("  | Ready Queue Size          | ");
     early_console_print_dec(scheduler_ready_count());
-    early_console_print(" tasks                      |\n");
-    early_console_print("  | Scheduling Policy         | Round-Robin with Preemption  |\n");
-    early_console_print("  | Time Slice                | 10 ticks (100ms)             |\n");
-    early_console_print("  +---------------------------+------------------------------+\n");
+    early_console_print(" tasks                     |\n");
+    early_console_print("  | Scheduling Policy         | Round-Robin with Preemption|\n");
+    early_console_print("  | Time Slice                | 10 ticks (100ms)           |\n");
+    early_console_print("  +---------------------------+-----------------------------+\n");
     
     early_console_print("\n  >>> Watch the interleaved task output to see context switching! <<<\n");
 }
@@ -1337,9 +1331,9 @@ static void memory_test(void)
         early_console_print("  Result: Block allocated at 0x");
         early_console_print_hex((uint32_t)(uintptr_t)ptr1);
         early_console_print("\n");
-        early_console_print("  +--------+-------------------------------------------------+\n");
+        early_console_print("  +--------+--------------------------------------------------+\n");
         early_console_print("  |  A:256 |             FREE (remaining)                    |\n");
-        early_console_print("  +--------+-------------------------------------------------+\n");
+        early_console_print("  +--------+--------------------------------------------------+\n");
         early_console_print("     ^~~~~ Block A = 256 bytes (USED)\n\n");
     } else {
         early_console_print("  FAILED\n");
@@ -1354,9 +1348,9 @@ static void memory_test(void)
         early_console_print("  Result: Block allocated at 0x");
         early_console_print_hex((uint32_t)(uintptr_t)ptr2);
         early_console_print("\n");
-        early_console_print("  +--------+-------------+-----------------------------------+\n");
-        early_console_print("  |  A:256 |   B:1024    |          FREE (remaining)         |\n");
-        early_console_print("  +--------+-------------+-----------------------------------+\n");
+        early_console_print("  +--------+-------------+------------------------------------+\n");
+        early_console_print("  |  A:256 |   B:1024    |          FREE (remaining)          |\n");
+        early_console_print("  +--------+-------------+------------------------------------+\n");
         early_console_print("     ^~~~~    ^~~~~~~~~~ Block B = 1024 bytes (USED)\n\n");
     } else {
         early_console_print("  FAILED\n");
@@ -1367,10 +1361,10 @@ static void memory_test(void)
     early_console_print("  ------------------------------------------------------------\n");
     kfree(ptr1);
     early_console_print("  Result: Block A returned to free list\n");
-    early_console_print("  +--------+-------------+-----------------------------------+\n");
-    early_console_print("  | FREE   |   B:1024    |          FREE (remaining)         |\n");
-    early_console_print("  | (256)  |   (USED)    |                                   |\n");
-    early_console_print("  +--------+-------------+-----------------------------------+\n");
+    early_console_print("  +--------+-------------+------------------------------------+\n");
+    early_console_print("  | FREE   |   B:1024    |          FREE (remaining)          |\n");
+    early_console_print("  | (256)  |   (USED)    |                                    |\n");
+    early_console_print("  +--------+-------------+------------------------------------+\n");
     early_console_print("     ^~~~~~ Now on free list!\n\n");
 
     /* Test 4: Allocate again (should reuse freed block) */
@@ -1384,9 +1378,9 @@ static void memory_test(void)
         if (ptr3 == ptr1) {
             early_console_print("  >>> SAME ADDRESS AS A! Free list reuse confirmed! <<<\n");
         }
-        early_console_print("  +----+---+-------------+-----------------------------------+\n");
-        early_console_print("  |C128|FRE|   B:1024    |          FREE (remaining)         |\n");
-        early_console_print("  +----+---+-------------+-----------------------------------+\n");
+        early_console_print("  +----+---+-------------+------------------------------------+\n");
+        early_console_print("  |C128|FRE|   B:1024    |          FREE (remaining)          |\n");
+        early_console_print("  +----+---+-------------+------------------------------------+\n");
         early_console_print("     ^~~  ^~~ Block split: 128 used, 128 free (fragmentation)\n\n");
     } else {
         early_console_print("  FAILED\n");
@@ -1434,23 +1428,23 @@ static void memory_test(void)
 
     /* Print heap statistics */
     early_console_print("  HEAP STATISTICS SUMMARY:\n");
-    early_console_print("  +-----------------------------+----------------------------+\n");
+    early_console_print("  +---------------------------+---------------------------+\n");
     early_console_print("  | Total Allocations:   ");
     early_console_print_dec(heap_allocation_count());
-    early_console_print("    | Total Frees:         ");
+    early_console_print("   | Total Frees:         ");
     early_console_print_dec(heap_free_count());
-    early_console_print("    |\n");
+    early_console_print("   |\n");
 
     /* Validate heap integrity */
     int blocks = heap_validate();
     if (blocks >= 0) {
-        early_console_print("  | Heap Integrity:    OK    | Free Blocks:         ");
+        early_console_print("  | Heap Integrity:    OK   | Free Blocks:         ");
         early_console_print_dec((uint32_t)blocks);
-        early_console_print("    |\n");
+        early_console_print("   |\n");
     } else {
-        early_console_print("  | Heap Integrity: CORRUPT! |                               |\n");
+        early_console_print("  | Heap Integrity: CORRUPT!|                           |\n");
     }
-    early_console_print("  +-----------------------------+----------------------------+\n");
+    early_console_print("  +---------------------------+---------------------------+\n");
 }
 
 /* ---------------------------------------------------------------------------
@@ -1465,90 +1459,90 @@ static void interrupt_test(void)
     
     /* Show IDT structure */
     early_console_print("\n  INTERRUPT DESCRIPTOR TABLE (IDT):\n");
-    early_console_print("  +--------+--------------------+----------------------------+\n");
-    early_console_print("  | Vector | Type               | Handler                    |\n");
-    early_console_print("  +--------+--------------------+----------------------------+\n");
-    early_console_print("  | 0-31   | CPU Exceptions     | isr0-isr31 (divide,GPF..)  |\n");
-    early_console_print("  | 32-47  | Hardware IRQs      | irq0-irq15 (timer,kbd..)   |\n");
-    early_console_print("  | 48-255 | Software/Reserved  | Available for syscalls     |\n");
-    early_console_print("  | 0x80   | System Call        | syscall_handler (INT 80h)  |\n");
-    early_console_print("  +--------+--------------------+----------------------------+\n");
+    early_console_print("  +--------+---------------------+----------------------------+\n");
+    early_console_print("  | Vector | Type                | Handler                    |\n");
+    early_console_print("  +--------+---------------------+----------------------------+\n");
+    early_console_print("  | 0-31   | CPU Exceptions      | isr0-isr31 (divide,GPF...) |\n");
+    early_console_print("  | 32-47  | Hardware IRQs       | irq0-irq15 (timer,kbd...)  |\n");
+    early_console_print("  | 48-255 | Software/Reserved   | Available for syscalls     |\n");
+    early_console_print("  | 0x80   | System Call         | syscall_handler (INT 80h)  |\n");
+    early_console_print("  +--------+---------------------+----------------------------+\n");
     
     /* Show PIC remapping */
     early_console_print("\n  8259 PIC REMAPPING (Why it's needed):\n");
-    early_console_print("  +--------------------+            +------------------------+\n");
-    early_console_print("  |  BEFORE REMAP      |    VS      |   AFTER REMAP          |\n");
-    early_console_print("  +--------------------+            +------------------------+\n");
-    early_console_print("  | IRQ0 -> Vector 8   |            | IRQ0 -> Vector 32      |\n");
-    early_console_print("  | IRQ1 -> Vector 9   |   ==>      | IRQ1 -> Vector 33      |\n");
-    early_console_print("  | ...                |            | ...                    |\n");
-    early_console_print("  | IRQ7 -> Vector 15  |            | IRQ7 -> Vector 39      |\n");
-    early_console_print("  +--------------------+            +------------------------+\n");
-    early_console_print("  Problem: Vectors 8-15 = CPU exceptions (Double Fault etc.)\n");
-    early_console_print("  Solution: Remap IRQs to vectors 32-47 (unused range)      \n");
+    early_console_print("  +-------------------+          +--------------------+\n");
+    early_console_print("  |  BEFORE REMAP     |    VS    |   AFTER REMAP      |\n");
+    early_console_print("  +-------------------+          +--------------------+\n");
+    early_console_print("  | IRQ0 -> Vector 8  |          | IRQ0 -> Vector 32  |\n");
+    early_console_print("  | IRQ1 -> Vector 9  |   ==>    | IRQ1 -> Vector 33  |\n");
+    early_console_print("  | ...               |          | ...                |\n");
+    early_console_print("  | IRQ7 -> Vector 15 |          | IRQ7 -> Vector 39  |\n");
+    early_console_print("  +-------------------+          +--------------------+\n");
+    early_console_print("  Problem: Vectors 8-15 are CPU exceptions (Double Fault, etc.)\n");
+    early_console_print("  Solution: Remap IRQs to vectors 32-47 (unused range)\n");
     
     /* Show cascade architecture */
     early_console_print("\n  DUAL 8259 PIC CASCADE ARCHITECTURE:\n");
-    early_console_print("  +--------------------+    cascade    +--------------------+\n");
-    early_console_print("  |    MASTER PIC      | <============ |    SLAVE PIC       |\n");
-    early_console_print("  +--------------------+    (IRQ2)     +--------------------+\n");
-    early_console_print("  | IRQ0: PIT Timer    |               | IRQ8:  RTC         |\n");
-    early_console_print("  | IRQ1: Keyboard     |               | IRQ9:  ACPI        |\n");
-    early_console_print("  | IRQ2: [Cascade]    |               | IRQ10: (free)      |\n");
-    early_console_print("  | IRQ3: COM2         |               | IRQ11: (free)      |\n");
-    early_console_print("  | IRQ4: COM1         |               | IRQ12: PS/2 Mouse  |\n");
-    early_console_print("  | IRQ5: LPT2         |               | IRQ13: FPU         |\n");
-    early_console_print("  | IRQ6: Floppy       |               | IRQ14: ATA Pri     |\n");
-    early_console_print("  | IRQ7: LPT1         |               | IRQ15: ATA Sec     |\n");
-    early_console_print("  +--------------------+               +--------------------+\n");
+    early_console_print("  +------------------+    cascade    +------------------+\n");
+    early_console_print("  |   MASTER PIC     | <============ |    SLAVE PIC     |\n");
+    early_console_print("  +------------------+    (IRQ2)     +------------------+\n");
+    early_console_print("  | IRQ0: PIT Timer  |               | IRQ8:  RTC       |\n");
+    early_console_print("  | IRQ1: Keyboard   |               | IRQ9:  ACPI      |\n");
+    early_console_print("  | IRQ2: [Cascade]  |               | IRQ10: (free)    |\n");
+    early_console_print("  | IRQ3: COM2       |               | IRQ11: (free)    |\n");
+    early_console_print("  | IRQ4: COM1       |               | IRQ12: PS/2 Mouse|\n");
+    early_console_print("  | IRQ5: LPT2       |               | IRQ13: FPU       |\n");
+    early_console_print("  | IRQ6: Floppy     |               | IRQ14: ATA Pri   |\n");
+    early_console_print("  | IRQ7: LPT1       |               | IRQ15: ATA Sec   |\n");
+    early_console_print("  +------------------+               +------------------+\n");
     
     /* Show interrupt flow */
     early_console_print("\n  INTERRUPT FLOW (e.g., Keyboard Press):\n");
     early_console_print("  ============================================================\n");
     early_console_print("\n");
-    early_console_print("  [KEY PRESS]                                                 \n");
-    early_console_print("       |                                                      \n");
-    early_console_print("       v                                                      \n");
-    early_console_print("  +----------+   IRQ1    +---------+  Vector33  +--------+    \n");
-    early_console_print("  | Keyboard | --------> |   PIC   | ---------> |  CPU   |    \n");
-    early_console_print("  +----------+           +---------+            +--------+    \n");
-    early_console_print("                                                     |        \n");
-    early_console_print("                              +----------------------+        \n");
-    early_console_print("                              |  Save registers, lookup IDT   \n");
-    early_console_print("                              v                               \n");
-    early_console_print("                        +-------------+                       \n");
-    early_console_print("                        | IDT[33] =   |                       \n");
-    early_console_print("                        | irq1_handler|                       \n");
-    early_console_print("                        +-------------+                       \n");
-    early_console_print("                              |                               \n");
-    early_console_print("                              v                               \n");
-    early_console_print("  +----------------------------------------------------------+\n");
-    early_console_print("  | keyboard_irq_handler():                                  |\n");
-    early_console_print("  |   1. Read scancode from port 0x60                        |\n");
-    early_console_print("  |   2. Convert to ASCII                                    |\n");
-    early_console_print("  |   3. Store in keyboard buffer                            |\n");
-    early_console_print("  |   4. Send EOI to PIC (End Of Interrupt)                  |\n");
-    early_console_print("  +----------------------------------------------------------+\n");
-    early_console_print("                              |                               \n");
-    early_console_print("                              v                               \n");
-    early_console_print("                        [IRET - Return]                       \n");
-    early_console_print("                        Resume execution                      \n");
+    early_console_print("  [KEY PRESS]                                                  \n");
+    early_console_print("       |                                                       \n");
+    early_console_print("       v                                                       \n");
+    early_console_print("  +----------+   IRQ1    +---------+  Vector33  +----------+   \n");
+    early_console_print("  | Keyboard | --------> |   PIC   | ---------> |   CPU    |   \n");
+    early_console_print("  +----------+           +---------+            +----------+   \n");
+    early_console_print("                                                     |         \n");
+    early_console_print("                              +----------------------+         \n");
+    early_console_print("                              |  Save registers, lookup IDT    \n");
+    early_console_print("                              v                                \n");
+    early_console_print("                        +-------------+                        \n");
+    early_console_print("                        | IDT[33] =   |                        \n");
+    early_console_print("                        | irq1_handler|                        \n");
+    early_console_print("                        +-------------+                        \n");
+    early_console_print("                              |                                \n");
+    early_console_print("                              v                                \n");
+    early_console_print("  +----------------------------------------------------------+ \n");
+    early_console_print("  | keyboard_irq_handler():                                 | \n");
+    early_console_print("  |   1. Read scancode from port 0x60                       | \n");
+    early_console_print("  |   2. Convert to ASCII                                   | \n");
+    early_console_print("  |   3. Store in keyboard buffer                           | \n");
+    early_console_print("  |   4. Send EOI to PIC (End Of Interrupt)                 | \n");
+    early_console_print("  +----------------------------------------------------------+ \n");
+    early_console_print("                              |                                \n");
+    early_console_print("                              v                                \n");
+    early_console_print("                        [IRET - Return]                        \n");
+    early_console_print("                        Resume execution                       \n");
     
     /* Test: Verify PIT is ready */
     early_console_print("\n  VERIFICATION:\n");
-    early_console_print("  +-------------------------------------------+--------------+\n");
-    early_console_print("  | Component                                 | Status       |\n");
-    early_console_print("  +-------------------------------------------+--------------+\n");
-    early_console_print("  | IDT Loaded (256 gates)                    |     OK       |\n");
-    early_console_print("  | PIC Remapped (32-47)                      |     OK       |\n");
-    early_console_print("  | ISR Handlers (0-31)                       |     OK       |\n");
-    early_console_print("  | IRQ0 (Timer @ 100Hz)                      |     OK       |\n");
-    early_console_print("  | IRQ1 (Keyboard)                           |     OK       |\n");
+    early_console_print("  +------------------------+--------+\n");
+    early_console_print("  | Component              | Status |\n");
+    early_console_print("  +------------------------+--------+\n");
+    early_console_print("  | IDT Loaded (256 gates) |   OK   |\n");
+    early_console_print("  | PIC Remapped (32-47)   |   OK   |\n");
+    early_console_print("  | ISR Handlers (0-31)    |   OK   |\n");
+    early_console_print("  | IRQ0 (Timer @ 100Hz)   |   OK   |\n");
+    early_console_print("  | IRQ1 (Keyboard)        |   OK   |\n");
     uint32_t start_ticks = pit_get_ticks();
-    early_console_print("  | Timer Ticks (initial)                     |     ");
+    early_console_print("  | Timer Ticks (initial)  |  ");
     early_console_print_dec(start_ticks);
-    early_console_print("       |\n");
-    early_console_print("  +-------------------------------------------+--------------+\n");
+    early_console_print("   |\n");
+    early_console_print("  +------------------------+--------+\n");
 }
 
 /* ---------------------------------------------------------------------------
@@ -1629,17 +1623,6 @@ static void early_console_scroll(void)
  * --------------------------------------------------------------------------- */
 static void early_console_print(const char *str)
 {
-    /* After VGA driver is initialized, route through it for proper
-     * history buffer, scrolling, and consistent rendering */
-    if (vga_driver_ready) {
-        /* Still output to serial for debugging */
-        const char *s = str;
-        while (*s) serial_putchar(*s++);
-        /* Use the VGA text driver */
-        vga_write_string(str);
-        return;
-    }
-
     while (*str) {
         char c = *str++;
         

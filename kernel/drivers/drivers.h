@@ -171,6 +171,39 @@ void vga_scroll_up(void);
 void vga_scroll_down(void);
 
 /*
+ * vga_scroll_to_bottom - Scroll to the latest output and re-enable auto-scroll
+ */
+void vga_scroll_to_bottom(void);
+
+/*
+ * vga_activate_hud - Switch from fullscreen boot mode to HUD layout
+ * ---------------------------------------------------------------------------
+ * Call once boot output is complete. Splits screen into:
+ *   Status bar (rows 0-2), Shell viewport (rows 3-20), Log area (rows 21-24)
+ */
+void vga_activate_hud(void);
+
+/*
+ * vga_update_status_bar - Update the HUD status bar (top area)
+ */
+void vga_update_status_bar(const char *left_text, const char *right_text);
+
+/*
+ * vga_log_msg - Write a message to the HUD log area (bottom area)
+ */
+void vga_log_msg(const char *msg);
+
+/*
+ * vga_visual_flash_syscall - Flash indicator for syscall activity
+ */
+void vga_visual_flash_syscall(void);
+
+/*
+ * vga_visual_clear_syscall - Clear syscall activity indicator
+ */
+void vga_visual_clear_syscall(void);
+
+/*
  * vga_print_hex - Print a 32-bit value in hexadecimal
  * ---------------------------------------------------------------------------
  * Parameters:
