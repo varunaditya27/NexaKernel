@@ -1,167 +1,225 @@
-# 🎓 NexaKernel: Project Presentation Guide
+# 🎓 NexaKernel: The Ultimate Presentation Guide
 
-This guide is designed to help you present **NexaKernel** to OS professors and engineering faculty. It focuses on demonstrating both **Systems Engineering** competence (low-level details) and **Data Structures & Algorithms (DSA)** mastery (practical application).
+This comprehensive guide is designed to help you present **NexaKernel** to OS professors and engineering faculty with absolute confidence. It provides a structured narrative, deep technical explanations, code walkthroughs, and answers to complex questions.
 
 ---
 
-## 🕒 Presentation Structure (15-20 Minutes)
+## 🕒 Presentation Structure (20-30 Minutes)
 
-1.  **Hook & Introduction (2 mins)** - What is it? Why build it?
-2.  **Architecture Overview (3 mins)** - Boot process & High-level design.
-3.  **Deep Dive: The "Big Three" Subsystems (6 mins)** - Scheduler, Memory, Filesystem.
-4.  **System Internals: Interrupts & Syscalls (4 mins)** - The nervous system.
-5.  **Live Demo Walkthrough (3 mins)** - Showing it runs.
-6.  **Q&A Prep (Buffer)** - Answering technical questions.
+1.  **Introduction & Hook (2 mins)** - The "Why" and "What".
+2.  **System Lifecycle Walkthrough (5 mins)** - From Power-on to Shell Prompt.
+3.  **Architecture & Memory (5 mins)** - GDT, Paging, Heap, Bitmap.
+4.  **The Heartbeat: Scheduling & Interrupts (5 mins)** - PIT, IDT, Round-Robin.
+5.  **Data Persistence: The Filesystem (4 mins)** - Trie, VFS, RamFS.
+6.  **Inter-Process Communication (3 mins)** - Message Queues & Shared Memory.
+7.  **Live Demo & Userland (3 mins)** - Seeing it in action.
+8.  **Q&A & Defense (Buffer)** - Handling the hard questions.
 
 ---
 
 ## 1. 🎤 Introduction & Problem Statement
 
-**Slide Goal:** Set the stage. You didn't just write code; you solved a systems problem.
+**Slide Goal:** Frame the project as an engineering challenge, not just a homework assignment.
 
-*   **Hook:** "Most OS courses stop at theory. I wanted to see how the theory actually translates to bare-metal code."
+*   **The Hook:**
+    > "We learn about Semaphores, Heaps, and Tries in isolation. But how do they actually *drive* a computer? I built NexaKernel to bridge the gap between abstract DSA theory and bare-metal systems engineering."
 *   **What is NexaKernel?**
-    *   A modular, 32-bit x86 operating system kernel written from scratch in C and Assembly.
-    *   It boots from a custom bootloader (GRUB/Multiboot), manages memory, schedules tasks, and handles hardware interrupts.
-*   **The Unique Angle (The "Why"):**
-    *   "Crucially, this project bridges the gap between **OS Theory** and **Data Structures**. Every subsystem is built around a specific, optimal data structure implementation."
+    *   A **Monolithic**, 32-bit x86 Kernel written from scratch in C and Assembly.
+    *   **Not a toy:** It features a custom boot protocol, protected mode switching, preemptive multitasking, a virtual filesystem, and IPC mechanisms.
+*   **The Core Philosophy:**
+    *   **DSA-Driven Design:** Every subsystem is backed by a specific, optimized data structure (e.g., Tries for files, Heaps for tasks).
+    *   **Modularity:** Drivers, FS, and Memory are isolated modules.
 
 ---
 
-## 2. 🏗️ High-Level Architecture & Boot Process
+## 2. 🔄 System Lifecycle: The "Life of a Boot"
 
-**Slide Goal:** Show you understand how an OS starts and fits together.
+**Script:** "Let's trace the execution flow from the moment I press the power button."
 
-### A. The Boot Sequence (`boot/bootloader.asm`)
-*   **The Handoff:** "The BIOS loads GRUB, which loads my kernel. My entry point `_start` is in `boot/bootloader.asm`."
-*   **Multiboot Magic:** "I first verify the Multiboot magic number (`0x2BADB002`) to ensure a compliant bootloader loaded us."
-*   **Global Descriptor Table (GDT):**
-    *   "I set up a **Flat Memory Model** using the GDT (`boot/gdt.asm`)."
-    *   "Code Segment: Base `0x0`, Limit `4GB`, Execute/Read."
-    *   "Data Segment: Base `0x0`, Limit `4GB`, Read/Write."
-    *   "This transitions the CPU into **32-bit Protected Mode**, enabling access to the full 4GB address space."
+### Phase 1: The Handoff (`boot/bootloader.asm`)
+1.  **BIOS & GRUB:** The BIOS loads GRUB. GRUB loads our kernel binary into memory at `0x100000` (1MB mark) and jumps to `_start`.
+2.  **Multiboot Verification:**
+    *   *Code:* `cmp eax, 0x2BADB002` (Checks magic number).
+    *   *Why?* To ensure we have a valid memory map from the bootloader.
+3.  **Protected Mode Entry:**
+    *   We are already in 32-bit mode thanks to GRUB.
+    *   **Critical Step:** We load our own **Global Descriptor Table (GDT)** (`boot/gdt.asm`).
+    *   *Configuration:* Flat Memory Model. Code and Data segments both map 0-4GB.
 
-### B. Kernel Initialization (`kernel/kernel.c`)
-*   "Once in C (`kernel_main`), I initialize:
-    1.  **IDT** (Interrupt Descriptor Table).
-    2.  **Physical Memory** (Bitmap Allocator).
-    3.  **Heap** (Dynamic Allocator).
-    4.  **Drivers** (PIT, Keyboard, VGA).
-    5.  **Scheduler** (Multitasking).
-    6.  **Syscalls** (Userland interface)."
-
----
-
-## 3. 🔬 Deep Dive: The "Big Three" (The Meat of the Project)
-
-This is where you impress them. Pick **2-3** of these to explain in depth depending on time.
-
-### A. The Scheduler (`kernel/scheduler/scheduler.c`)
-
-*   **The Concept:** Preemptive Multitasking.
-*   **The DSA:**
-    *   **Round-Robin:** Implemented using a **Circular Queue** (`kernel/scheduler/dsa_structures/round_robin_queue.c`). Used for standard tasks. O(1) enqueue/dequeue.
-    *   **Priority Scheduling:** Implemented using a **Binary Min-Heap** (`kernel/scheduler/dsa_structures/priority_queue.c`). Used for high-priority tasks. O(log n) insertion/extraction.
-*   **Code Highlight:**
-    *   "I defined a `task_t` struct (Task Control Block) that stores register state (`esp`, `ebp`), stack pointers, and process flags."
-    *   "The `schedule()` function is called on every timer interrupt (IRQ0). It saves the current context to the stack and switches to the next task."
-    *   "Context switching is handled in pure Assembly (`context_switch.asm`) to manipulate CPU registers directly."
-
-### B. Memory Management (`kernel/memory/`)
-
-*   **The Concept:** Managing Physical RAM and Kernel Heap.
-*   **Physical Allocator (`kernel/memory/dsa_structures/bitmap.c`):**
-    *   **DSA:** **Bitmap**.
-    *   "I divide physical RAM into 4KB page frames. A bitmap tracks availability (1 bit = 1 page). Allocation uses `bitmap_find_first_zero` for O(N) search (optimized with word-scanning)."
-*   **Heap Allocator (`kernel/memory/heap_allocator.c`):**
-    *   **DSA:** **Doubly Linked Free List** with **Coalescing**.
-    *   "Each block has a header (`heap_block_t`) with size and magic number."
-    *   "**Allocation:** Uses a **First-Fit** strategy. If a block is too big, it splits it."
-    *   "**Deallocation:** `kfree` marks the block as free and checks `prev` and `next` pointers to merge (coalesce) adjacent free blocks, reducing fragmentation."
-
-### C. The File System (`kernel/fs/ramfs.c`)
-
-*   **The Concept:** A Virtual File System (VFS) backed by RAM.
-*   **The DSA:**
-    *   **Trie (Prefix Tree):** Used for fast **path lookup** (`kernel/fs/dsa_structures/trie.c`). This makes file retrieval O(L) where L is path length, independent of the number of files.
-    *   **N-ary Tree:** Represents the **directory hierarchy** (`directory_tree.c`). Folders point to a list of child nodes.
-    *   **Hash Map:** Used for the **Open File Descriptor Table** ($O(1)$ access to open file handles).
-*   **Code Highlight:**
-    *   "Files are nodes in the tree (`ramfs_inode_t`). They contain metadata and a pointer to the data buffer."
-    *   "The system supports standard operations like `open`, `read`, `write`, `close`, `mkdir`, and `unlink`."
+### Phase 2: Kernel Main (`kernel/kernel.c`)
+1.  **Stack Setup:** `mov esp, kernel_stack_top`. We reserve 16KB in the `.bss` section for the initial stack.
+2.  **Hardware Init:**
+    *   **IDT:** `init_interrupts()` installs handlers for 32 Exceptions and 16 IRQs.
+    *   **PIC:** Remapped from 0x08 to 0x20 to avoid conflict with CPU exceptions.
+    *   **PIT:** Configured to 100Hz (10ms tick).
+3.  **Subsystem Init:**
+    *   Memory Manager (Bitmap + Heap).
+    *   Filesystem (RamFS + Trie).
+    *   Scheduler (Task structures).
+4.  **The Handover:** `scheduler_start()` enables interrupts (`sti`) and jumps to the first task (`init` or `shell`).
 
 ---
 
-## 4. ⚡ System Internals: Interrupts & Syscalls
+## 3. 🧠 Memory Management: The Backbone
 
-**Slide Goal:** Demonstrate low-level control flow.
+**Script:** "An OS is primarily a resource manager, and RAM is the most critical resource."
 
-### A. Interrupt Descriptor Table (IDT) (`kernel/interrupts/idt.c`)
-*   "I configured the IDT with 256 entries."
-    *   **0-31:** CPU Exceptions (e.g., #0 Divide-by-Zero, #13 GPF, #14 Page Fault).
-    *   **32-47:** Hardware IRQs (Remapped from PIC).
-    *   **0x80 (128):** System Calls.
-*   "The Programmable Interrupt Controller (PIC) is remapped to offset 32 to avoid conflicts with CPU exceptions."
+### A. Physical Memory: The Bitmap (`kernel/memory/dsa_structures/bitmap.c`)
+*   **Problem:** How do we track which 4KB page frames are free?
+*   **Solution:** A **Bitmap**.
+    *   *Logic:* 1 bit represents 1 page.
+    *   *Optimization:* We check 32 bits (4GB of coverage) at a time using `uint32_t` operations. If a word is `0xFFFFFFFF`, we skip it entirely.
+    *   *Code:* `bitmap_find_first_zero()` scans for the first free bit.
 
-### B. System Calls (`kernel/syscall.c`)
-*   "Userland programs interact with the kernel via `INT 0x80`."
+### B. Kernel Heap: The Free List (`kernel/memory/heap_allocator.c`)
+*   **Problem:** `kmalloc` needs to return variable-sized blocks (e.g., for structs).
+*   **Solution:** A **Doubly Linked Free List** with **First-Fit** strategy.
+*   **Structure:**
+    ```c
+    typedef struct heap_block {
+        size_t size;
+        bool is_free;
+        struct heap_block *next;
+        struct heap_block *prev;
+    } heap_block_t;
+    ```
+*   **Coalescing:** When `kfree()` is called, we look at `prev` and `next`. If they are free, we merge them into one larger block. This defeats **external fragmentation**.
+
+---
+
+## 4. ⚡ Scheduling & Interrupts: The Heartbeat
+
+**Script:** "How do we run multiple programs on a single CPU core?"
+
+### A. The Interrupt Descriptor Table (`kernel/interrupts/idt.c`)
+*   We define 256 gates.
+*   **ISRs (0-31):** CPU Exceptions.
+    *   *Example:* If a program divides by zero, the CPU jumps to vector 0. Our handler kills the task instead of crashing the OS.
+*   **IRQs (32-47):** Hardware.
+    *   *IRQ0:* Timer (The Metronome).
+    *   *IRQ1:* Keyboard.
+*   **Syscall (128/0x80):** The gateway for user programs.
+
+### B. The Scheduler (`kernel/scheduler/scheduler.c`)
+*   **Policy:** Preemptive Round-Robin.
 *   **Mechanism:**
-    *   **EAX:** Syscall Number (e.g., 1=EXIT, 3=READ, 4=WRITE).
-    *   **EBX, ECX, EDX:** Arguments.
-*   "The `syscall_handler` function uses a jump table (`syscall_table`) to dispatch the correct function based on EAX."
-
-### C. Drivers
-*   **Timer (PIT):** Configured in Mode 2 (Rate Generator) at 100Hz. Drives the scheduler preemption.
-*   **Keyboard (PS/2):** interrupt-driven. Scancodes are read from port `0x60`, translated to ASCII using a lookup table, and stored in a **Circular Buffer**.
-
----
-
-## 5. 🖥️ Live Demo Walkthrough
-
-**Step 1: Booting**
-*   Run `make run` (or `make run-iso`).
-*   **Say:** "Here you see the GRUB bootloader handing control to my kernel entry point. The kernel initializes the GDT, IDT, and Memory Manager."
-
-**Step 2: The Shell**
-*   **Action:** Type `help` to show available commands.
-*   **Action:** Type `meminfo` (if available) to show the memory map.
-    *   **Say:** "This confirms the memory allocator is tracking used vs. free bytes."
-
-**Step 3: Multitasking**
-*   **Action:** Run a command that spawns tasks (e.g., `tasks` or a demo program).
-    *   **Say:** "You can see multiple tasks printing to the screen simultaneously. This proves the preemptive scheduler is context-switching hundreds of times per second."
-
-**Step 4: Filesystem**
-*   **Action:** `touch test.txt`, `write test.txt "Hello OS"`, `cat test.txt`.
-    *   **Say:** "This demonstrates the RAMFS. The file data was allocated in the heap, indexed in the Trie, and retrieved."
+    1.  **Timer Interrupt:** Fires every 10ms.
+    2.  **Context Save:** `pusha` saves all registers to the current task's stack.
+    3.  **Switch:** `schedule()` picks the next task from the **Circular Queue**.
+    4.  **Context Restore:** `popa` restores the new task's registers.
+    5.  **Result:** The CPU "teleports" into the middle of another function.
+*   **Priority Queue (`kernel/scheduler/dsa_structures/priority_queue.c`):**
+    *   For high-priority tasks, we use a **Binary Min-Heap**.
+    *   *Complexity:* O(log N) to pick the most urgent task.
 
 ---
 
-## 6. ❓ Q&A Preparation (Anticipate these!)
+## 5. 📂 Filesystem: organizing Data
 
-**Q: How do you handle concurrency/race conditions?**
-*   **A:** "For this version, I use **interrupt disabling** (`cli`/`sti`) as a coarse-grained lock during critical kernel sections (like scheduling or memory allocation) to ensure atomicity on a single-core setup."
+**Script:** "Flat storage is useless. We need hierarchy and fast lookups."
 
-**Q: Why a Trie for the filesystem?**
-*   **A:** "A Trie is optimal for prefix-based lookups like file paths (`/home/user/file`). It avoids comparing the full string at every node, making path resolution extremely fast compared to a linear search."
+### A. The Structure (`kernel/fs/ramfs.c`)
+*   **In-Memory VFS:** No disk I/O yet; files live in the Heap.
+*   **Directory Tree:** An **N-ary Tree** (`directory_tree.c`).
+    *   Each folder has a list of children.
+    *   Allows recursive traversal (e.g., `ls -R`).
 
-**Q: How does the context switch work?**
-*   **A:** "It manually pushes all General Purpose Registers (EAX, EBX, etc.) onto the current task's stack, saves the Stack Pointer (ESP) to the `task_t` struct, loads the new task's ESP, and pops the registers back off."
-
-**Q: What was the hardest part?**
-*   **A:** "Debugging **Triple Faults** during early boot. Moving from Real Mode to Protected Mode requires setting up the GDT perfectly; one wrong byte causes the CPU to reset. Also, ensuring the stack is 16-byte aligned for GCC assumptions."
-
-**Q: How does the Priority Queue work for scheduling?**
-*   **A:** "It's a Min-Heap. The task with the lowest priority value (highest importance) is always at the root. Insertion is O(log n) because we bubble-up. Extraction is O(log n) because we swap the last element to the root and bubble-down."
+### B. The Index: Trie (`kernel/fs/dsa_structures/trie.c`)
+*   **Why a Trie?**
+    *   Standard OSs use Hash Maps (O(1)) or B-Trees.
+    *   I chose a **Prefix Tree (Trie)** because file paths are prefixes (`/home`, `/home/user`).
+*   **Performance:** Lookup is **O(L)** where L is the path length. It is independent of the number of files in the system.
+    *   *Deep Dive:* "/bin/sh" -> Root -> "bin" node -> "sh" node.
 
 ---
 
-## 📝 Key Files to Have Open During Presentation
+## 6. 📨 Inter-Process Communication (IPC)
 
-1.  `kernel/scheduler/scheduler.c` (The "Brain")
-2.  `kernel/memory/heap_allocator.c` (The "Muscle")
-3.  `kernel/fs/ramfs.c` (The "Organizer")
-4.  `kernel/interrupts/idt.c` (The "Nervous System")
-5.  `boot/bootloader.asm` (The "Spark")
+**Script:** "Tasks need to talk to each other."
 
-Good luck! You have built a real, working system. Be proud of the complexity you have managed.
+### A. Message Queues (`kernel/ipc/message_queue.c`)
+*   **Design:** Asynchronous FIFO buffers.
+*   **Usage:** Task A sends a struct; Task B receives it when ready.
+*   **Blocking:** If the queue is empty, Task B blocks (state = `WAITING`) until data arrives.
+
+### B. Shared Memory (`kernel/ipc/shared_memory.c`)
+*   **Design:** A region of physical RAM mapped into two tasks.
+*   **Speed:** Zero-copy. Fastest possible IPC.
+*   **Safety:** Requires synchronization (spinlocks) to avoid race conditions.
+
+---
+
+## 7. ⌨️ Userland & Shell
+
+**Script:** "The kernel serves the user. Here is the interface."
+
+### The Shell (`userland/shell/shell.c`)
+*   **Input:** Reads from `stdin` (Keyboard driver buffer).
+*   **Parsing:** Tokenizes input strings (e.g., `echo "hello"` -> `["echo", "hello"]`).
+*   **Execution:**
+    *   If command is internal (`help`, `clear`), run immediately.
+    *   If external, calls `sys_fork()` and `sys_exec()` (simulated).
+
+### System Calls (`kernel/syscall.c`)
+*   **The Protocol:**
+    *   EAX = Syscall Number (e.g., 4 for WRITE).
+    *   EBX = File Descriptor.
+    *   ECX = Buffer.
+    *   EDX = Length.
+    *   `INT 0x80` triggers the kernel handler.
+
+---
+
+## 8. ❓ Q&A Preparation: "The Defense"
+
+**Q: Why did you use a Monolithic kernel instead of a Microkernel?**
+*   **A:** "Performance and simplicity. In a microkernel, every driver interaction requires context switches and message passing (IPC overhead). For an academic project, a monolithic design allows direct function calls between subsystems, making debugging and implementation more straightforward."
+
+**Q: How do you handle concurrency? Do you have Spinlocks?**
+*   **A:** "Currently, I rely on **coarse-grained locking** by disabling interrupts (`cli`) during critical sections (like memory allocation). In a multi-core future version, I would implement atomic spinlocks to protect shared structures."
+
+**Q: Your heap uses First-Fit. Isn't Best-Fit better for fragmentation?**
+*   **A:** "Best-Fit minimizes fragmentation but requires searching the *entire* list (O(N)). First-Fit is faster (returns immediately) and, combined with coalescing, offers a good balance for a kernel where speed is critical."
+
+**Q: Explain the 'Triple Fault'.**
+*   **A:** "If an exception occurs (e.g., GPF) and the CPU cannot call the handler (e.g., IDT is invalid), it triggers a Double Fault. If *that* fails, the CPU resets. I faced this when my GDT was misconfigured."
+
+**Q: How does the Trie handle memory?**
+*   **A:** "Each node is `kmalloc`'d. When a file is deleted, we walk the trie. If a node has no other children, it is `kfree`'d. This ensures no memory leaks in the index."
+
+---
+
+## 📝 Code Snippets to Have Ready
+
+**1. The Context Switch (`context_switch.asm`)**
+```asm
+pusha                   ; Save all registers
+mov [eax], esp          ; Save old ESP to task struct
+mov esp, [edx]          ; Load new ESP from next task
+popa                    ; Restore new registers
+ret                     ; "Return" into the new task
+```
+
+**2. The Bitmap Allocator (`bitmap.c`)**
+```c
+// Optimization: Check 32 frames at once
+if (bitmap[i] != 0xFFFFFFFF) {
+    // Found a free bit in this word!
+    for (int j = 0; j < 32; j++) ...
+}
+```
+
+**3. The Syscall Dispatcher (`syscall.c`)**
+```c
+void syscall_handler(registers_t *regs) {
+    if (regs->eax >= MAX_SYSCALLS) return;
+    void *location = syscalls[regs->eax];
+    int ret = location(regs->ebx, regs->ecx, regs->edx);
+    regs->eax = ret; // Return value
+}
+```
+
+---
+
+## 🏁 Closing Statement
+"NexaKernel is more than lines of code; it is a functioning ecosystem. It manages hardware, memory, and processes using the very data structures we study in class. It proves that with enough patience, we can demystify the 'magic' of the computer."
