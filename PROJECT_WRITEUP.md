@@ -1,6 +1,6 @@
 # NexaKernel: Project Write-up Reference
 
-This document serves as the foundational material for your formal project write-up. It is structured according to academic requirements.
+This document serves as the foundational material for your formal project write-up. It is structured according to academic requirements and provides a comprehensive overview of the **NexaKernel** operating system project.
 
 ---
 
@@ -36,9 +36,10 @@ The primary objectives of the NexaKernel project are:
 3.  **Process Scheduling:** To develop a preemptive multitasking scheduler that supports both Round-Robin and Priority-based scheduling policies.
 4.  **File System Design:** To create an in-memory Virtual File System (VFS) that supports file creation, reading, writing, and hierarchical directory management.
 5.  **DSA Integration:** To demonstrate the practical application of:
-    *   **Circular Queues** (Scheduler)
-    *   **Binary Heaps** (Priority Scheduling)
+    *   **Circular Queues** (Scheduler - Round Robin)
+    *   **Binary Heaps** (Scheduler - Priority)
     *   **Free Lists** (Memory Allocation)
+    *   **Bitmaps** (Physical Frame Allocation)
     *   **Tries & N-ary Trees** (File System Indexing)
     *   **Hash Maps** (File Descriptor Tables)
 
@@ -50,39 +51,70 @@ The development of NexaKernel followed a modular, layered approach. The system w
 
 ## 4.1 Booting and Initialization
 The boot process begins with a custom bootloader (or GRUB) that loads the kernel into memory.
-*   **GDT Setup:** The Global Descriptor Table is configured to define code and data segments, transitioning the CPU from 16-bit Real Mode to 32-bit Protected Mode.
-*   **IDT Setup:** The Interrupt Descriptor Table is populated with Interrupt Service Routines (ISRs) to handle exceptions (like Divide-by-Zero) and hardware interrupts (IRQs).
+*   **Multiboot Compliance:** The kernel includes a Multiboot header (`boot/multiboot_header.asm`) to ensure compatibility with standard bootloaders like GRUB.
+*   **GDT Setup (`boot/gdt.asm`):** The Global Descriptor Table is configured to define code and data segments, transitioning the CPU from 16-bit Real Mode to 32-bit Protected Mode. This establishes a "Flat Memory Model" (Base 0x0, Limit 4GB).
+*   **Stack Initialization:** A 16KB kernel stack is reserved in the BSS section, and the Stack Pointer (ESP) is set up before calling `kernel_main`.
 
-## 4.2 Memory Management Subsystem
+## 4.2 Interrupt Handling (IDT & ISRs)
+The kernel must respond to asynchronous hardware events and software exceptions.
+*   **IDT Setup (`kernel/interrupts/idt.c`):** The Interrupt Descriptor Table is populated with 256 entries.
+    *   **0-31:** CPU Exceptions (e.g., Divide-by-Zero, Page Fault).
+    *   **32-47:** Hardware IRQs (remapped from the PIC).
+    *   **128 (0x80):** System Calls.
+*   **PIC Remapping:** The Programmable Interrupt Controller (8259A) is remapped to offset 32 to avoid conflicts with CPU exceptions.
+*   **ISR Stubs:** Assembly stubs (`kernel/interrupts/isr_stubs.asm`) save the CPU state (push `pusha`) before calling the C handler.
+
+## 4.3 Memory Management Subsystem
 The memory manager is the backbone of the OS, responsible for tracking available RAM.
-*   **Physical Memory:** Uses a **Bitmap** to track free/used 4KB physical frames.
+*   **Physical Memory (Bitmap Allocator):**
+    *   **Data Structure:** **Bitmap** (`kernel/memory/dsa_structures/bitmap.c`).
+    *   **Logic:** RAM is divided into 4KB page frames. Each bit in the bitmap represents one frame (0=Free, 1=Used).
+    *   **Algorithm:** Allocation uses a word-scanning approach (`bitmap_find_first_zero`) to find free frames efficiently.
 *   **Heap Allocator (`kmalloc`/`kfree`):**
-    *   **Data Structure:** A **Doubly Linked Free List**.
+    *   **Data Structure:** **Doubly Linked Free List** (`kernel/memory/heap_allocator.c`).
+    *   **Header:** Each block has a header containing size, status, and magic number.
     *   **Algorithm:** **First-Fit** allocation strategy. When a block is requested, the allocator traverses the list to find the first block large enough. If the block is significantly larger, it is **split** into two.
-    *   **Coalescing:** When memory is freed, the allocator checks adjacent blocks. If they are also free, they are merged (**coalesced**) into a single larger block to reduce external fragmentation.
+    *   **Coalescing:** When memory is freed, the allocator checks adjacent blocks (`prev` and `next`). If they are also free, they are merged (**coalesced**) into a single larger block to reduce external fragmentation.
 
-## 4.3 Process Scheduler
+## 4.4 Process Scheduler
 The scheduler enables multitasking by rapidly switching the CPU between tasks.
 *   **Task Control Block (TCB):** A `task_t` struct holds the task's state (registers `ESP`, `EBP`, `EIP`), stack pointer, and status flags.
 *   **Scheduling Algorithms:**
-    1.  **Round-Robin:** Uses a **Circular Queue**. Tasks are dequeued, run for a time slice (handled by the PIT timer), and re-queued. This ensures fairness ($O(1)$ complexity).
-    2.  **Priority Scheduling:** Uses a **Binary Min-Heap**. Tasks with higher priority (lower numerical value) are always at the root, ensuring the most critical task runs next ($O(\log N)$ complexity).
-*   **Context Switching:** Implemented in Assembly, this routine manually saves the current task's registers to its stack and loads the new task's stack pointer.
+    1.  **Round-Robin:** Uses a **Circular Queue** (`kernel/scheduler/dsa_structures/round_robin_queue.c`). Tasks are dequeued from the head, run for a time slice (handled by the PIT timer), and re-queued at the tail. This ensures fairness and prevents starvation ($O(1)$ complexity).
+    2.  **Priority Scheduling:** Uses a **Binary Min-Heap** (`kernel/scheduler/dsa_structures/priority_queue.c`). Tasks with higher priority (lower numerical value) are always bubbled to the root.
+        *   **Insertion:** Add at end, `heapify_up` (swap with parent until heap property satisfied). $O(\log N)$.
+        *   **Extraction:** Remove root, move last element to root, `heapify_down` (swap with smallest child). $O(\log N)$.
+*   **Context Switching:** Implemented in Assembly (`context_switch.asm`), this routine manually saves the current task's registers to its stack and loads the new task's stack pointer.
 
-## 4.4 Virtual File System (RAMFS)
+## 4.5 Virtual File System (RAMFS)
 A non-persistent, in-memory file system was implemented to demonstrate file management.
-*   **Directory Structure:** An **N-ary Tree** represents the hierarchy. Each directory node points to a list of child nodes (subdirectories or files).
-*   **Path Indexing:** A **Trie (Prefix Tree)** is used to index file paths. This allows for $O(L)$ lookup time (where $L$ is path length), which is significantly faster than linear search for deep directory structures.
-*   **File Descriptors:** An **Open File Table** uses a **Hash Map** to map integer file descriptors (fd) to open file objects, allowing $O(1)$ access during `read`/`write` operations.
+*   **Directory Structure:** An **N-ary Tree** (`kernel/fs/directory_tree.c`) represents the hierarchy. Each directory node points to a list of child nodes (subdirectories or files).
+*   **Path Indexing:** A **Trie (Prefix Tree)** (`kernel/fs/dsa_structures/trie.c`) is used to index file paths. This allows for $O(L)$ lookup time (where $L$ is path length), which is significantly faster than linear search for deep directory structures.
+*   **File Descriptors:** An **Open File Table** uses a **Hash Map** (`kernel/fs/dsa_structures/hashmap.c`) to map integer file descriptors (fd) to open file objects, allowing $O(1)$ access during `read`/`write` operations.
 *   **Storage:** File data is stored in dynamically allocated heap buffers that grow as data is written.
 
-## 4.5 Inter-Process Communication (IPC)
-Basic IPC mechanisms allow tasks to coordinate.
-*   **Message Passing:** Implemented using **FIFO Message Queues**, allowing tasks to send and receive data packets safely.
+## 4.6 Drivers
+*   **Timer (PIT):** The Programmable Interval Timer is configured in Mode 2 (Rate Generator) to fire interrupts at 100Hz (`SCHEDULER_TICK_HZ`). This drives the preemptive scheduler.
+*   **Keyboard (PS/2):** The driver reads scancodes from I/O port `0x60`, translates them to ASCII using a lookup table, and stores them in a **Circular Buffer**.
+
+## 4.7 System Calls
+Userland programs interact with the kernel via a unified interface.
+*   **Mechanism:** Software Interrupt `INT 0x80`.
+*   **Dispatcher:** The `syscall_handler` (`kernel/syscall.c`) reads the syscall number from the EAX register and dispatches to the appropriate C function using a function pointer table (`syscall_table`).
+*   **Implemented Calls:** `exit`, `fork`, `read`, `write`, `open`, `close`, `getpid`, `sleep`, `yield`.
 
 ---
 
-# 5. Conclusion
+# 5. Design Decisions
+
+1.  **Monolithic Architecture:** Chosen for simplicity and performance. All subsystems share the same address space, eliminating the overhead of message passing found in microkernels.
+2.  **Bitmap for Physical Memory:** A bitmap is space-efficient (1 bit per 4KB page = ~32KB overhead for 1GB RAM) and allows fast contiguous allocation searches.
+3.  **Trie for Filesystem:** While Hash Maps are O(1), they don't support hierarchical listing or prefix matching naturally. A Trie is optimal for path-based lookups (`/home/user/file`) and directory traversal.
+4.  **Min-Heap for Priority Scheduling:** Ensures that the highest-priority task is always accessible in O(1) time (root), with efficient updates. This is superior to a sorted list (O(N) insertion) for dynamic priority systems.
+
+---
+
+# 6. Conclusion
 
 NexaKernel successfully demonstrates the construction of a functional, modular operating system kernel. By integrating core Data Structures and Algorithms directly into the kernel's subsystems, the project provides a tangible connection between abstract computer science concepts and low-level systems engineering.
 
